@@ -47,11 +47,8 @@ class Model():
             transition = random.choice(transitions)
             
             # Get possible branches for selected transition
-            try:
-                branches = self.network.get_branches(state, transition)
-            except ExplorationError:
-                break
-                
+            branches = self.network.get_branches(state, transition)
+          
             # Select branch according to probabilities
             probabilities = [b.probability for b in branches]
             selected_branch = np.random.choice(branches, p=probabilities)

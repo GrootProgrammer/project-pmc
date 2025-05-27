@@ -6,7 +6,9 @@ from errors import *
 from program import *
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Analyze Modest models.")
+    parser = argparse.ArgumentParser(description="Probabilistic Model Checker for MDPs")
+   
+    # Global arguments
     parser.add_argument(
         "--modest",
         help="Path to the Modest executable"
@@ -15,19 +17,36 @@ if __name__ == "__main__":
         "--input_dir",
         help="Directory containing the Modest model file"
     )
-    parser.add_argument(
-        "--explore_mode",
-        help="Mode(s) to explore the model: random, deterministic",
-        required=False
-    )
 
-    parser.add_argument(
-        "--explore_max",
-        default=20,
-        help="Maximum number of states to explore. Default: 20",
-        required=False,
-        type=int
-    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Explore
+    explore_parser = subparsers.add_parser("explore",
+                                         help="State space exploration")
+    explore_parser.add_argument("--mode", choices=["random"],
+                              default="random", help="Exploration strategy")
+    explore_parser.add_argument("--max", type=int, default=20,
+                              help="Maximum exploration steps")
+
+    # Check
+    check_parser = subparsers.add_parser("check", 
+                                      help="Verify model properties")
+
+    # Algorithm selection
+    check_parser.add_argument("--algorithm", type=Algorithm,
+                            choices=list(Algorithm), default=Algorithm.VALUE_ITERATION.value,
+                            help="Verification algorithm to use")
+    
+    # Numerical parameters
+    check_parser.add_argument("--precision", type=float, default=1e-6,
+                            help="Numerical convergence threshold")
+    
+    # Probability/reward bounds
+    bounds_group = check_parser.add_mutually_exclusive_group()
+    bounds_group.add_argument("--min", action="store_true",
+                            help="Compute minimum probability/reward")
+    bounds_group.add_argument("--max", action="store_true",
+                            help="Compute maximum probability/reward")
 
     args = parser.parse_args()
 
@@ -46,15 +65,17 @@ if __name__ == "__main__":
     mmodel=Model()
     mmodel.info()
 
-    if args.explore_mode:
+    if args.command == "explore":
         print("-"*20)
-        print(f"Explore Modest model: {args.explore_mode}")
+        print(f"Explore Modest model: {args.mode}")
         print("-"*20)
-        if not args.explore_mode in list(ExploreMode.__members__):
-            raise ExploreModeError(args.explore_mode)
-        path=mmodel.explore(args.explore_mode, args.explore_max)
+        path=mmodel.explore(args.mode, args.max)
         for p in path:
             print(str(p))
+    elif args.command == "check":
+        print("-"*20)
+        print(f"Check Modest model: {args.mode}")
+        print("-"*20)
 
     print("-"*20)
     print("Clean up")
