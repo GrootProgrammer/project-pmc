@@ -12,6 +12,26 @@ def test():
             "results": {
                 "goal": "1"
             }
+        },
+        "beb": {
+            "args": {
+                "H": "3",
+                "K": "4",
+                "N": "5"
+            },
+            "results": {
+                "LineSeized": "0.9166259765625",
+                "GaveUp": "0.0833740234375"
+            }
+        },
+        "breakdown-queues": {
+            "args": {
+                "K": "8"
+            },
+            "results": {
+                "Min": "0.02800482792035489",
+                "Max": "0.23177396051702714"
+            }
         }
     }
 
@@ -21,12 +41,16 @@ def test():
         print(f"testing {k}")
 
         if not os.path.exists(f"examples/{k}.py"):
-            args_text = " ".join([f"{k}={v}" for k, v in v["args"].items()])
+            args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
             cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"examples/{k}.py"]
-            subprocess.run(cmd)
+            _ = subprocess.run(cmd, capture_output=True, text=True, check=True)
         
-        cmd = ["python3", "src/model_checker/main.py", "--model-file", f"examples/{k}.py", "check"]
+        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"examples/{k}.py", "check"]
         output = subprocess.run(cmd, capture_output=True, text=True)
+        if output.returncode != 0:
+            print(f"error running {cmd}")
+            print(output.stderr)
+            exit(1)
         for result in v["results"]:
             line = get_line_with_result(output.stdout, result)
             if line is None:
