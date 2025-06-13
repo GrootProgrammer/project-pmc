@@ -7,7 +7,7 @@ def value_iteration(mmodel):
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
     threads = []
     # lets multithread if it is allowed
-    if sys._is_gil_enabled():
+    if hasattr(sys, "is_gil_enabled") and sys._is_gil_enabled():
         for prop in properties:
             value_iteration_thread(prop)
     else:
@@ -69,9 +69,7 @@ def value_iteration_thread(prop):
                     _v[s] = prop.get_operation()(paths)
         if all(_v[s] == float('inf') or _v[s] == 0 or abs(_v[s] - v[s]) / _v[s] < error for s in v):
             break
-    print(f"Checking property: {prop.name}")
-    print(prop.exp)
-    print(_v[0])
+    print(f"{prop.name}={_v[0]}")
     return
 
 class Model:
