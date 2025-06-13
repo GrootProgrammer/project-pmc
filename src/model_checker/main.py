@@ -13,11 +13,19 @@ if __name__ == "__main__":
     # Global arguments
     parser.add_argument(
         "--modest",
-        help="Path to the Modest executable"
+        help="Path to the Modest executable",
+        default="modest"
     )
-    parser.add_argument(
-        "--model-file",
-        help="Path to the Modest model file"
+
+    model_input_group = parser.add_mutually_exclusive_group(required=True)
+    
+    model_input_group.add_argument(
+        "--modest-model",
+        help="Path to the original model file"
+    )
+    model_input_group.add_argument(
+        "--python-model",
+        help="Path to the converted model file"
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -55,11 +63,19 @@ if __name__ == "__main__":
     print("-"*20)
     print("Load Modest model")
     print("-"*20)
-    spec = util.spec_from_file_location("modest", args.model_file)
+    if args.modest_model:
+        convert_modest_to_python(args.modest_model, args.modest)
+
+        model_file_dir = "src/model_checker/modest/modest.py"
+    else:
+        model_file_dir = args.python_model
+    spec = util.spec_from_file_location("modest", model_file_dir)
     model = util.module_from_spec(spec)
     spec.loader.exec_module(model)
-    mmodel = model.Network()
-    # mmodel.info()
+    mmodelN = model.Network()
+    from model import Model
+    mmodel = Model(mmodelN)
+    mmodel.info()
 
     if args.command == "explore":
         print("-"*20)
@@ -80,5 +96,6 @@ if __name__ == "__main__":
 
     print("-"*20)
     print("Clean up")
+    if args.modest_model:
+        cleanup()
     print("-"*20)
-    #cleanup()

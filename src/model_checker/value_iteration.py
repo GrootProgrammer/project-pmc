@@ -2,6 +2,7 @@ import threading
 import sys                                                         
 
 def value_iteration(mmodel):
+    mmodel = mmodel.network
     opt_model = Model(mmodel)
     print(len(opt_model.opt['states']))
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
