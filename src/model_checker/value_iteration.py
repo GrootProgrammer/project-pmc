@@ -75,7 +75,6 @@ def value_iteration_thread(prop):
 
 class Model:
     def __init__(self, mmodel):
-        # TODO: SHOULD ADD A TEMP LIST THAT IS ALL THE NEW STATES RIGHT NOW THIS IS WORST CASE O(n^n) (I think?), with temp it will be O(n)
         new_model = {}
         new_states = [mmodel.network.get_initial_state()]
         new_model["states"] = []
