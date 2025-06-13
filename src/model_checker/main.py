@@ -5,6 +5,8 @@ from utils import *
 from errors import *
 from program import *
 
+from importlib import util
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Probabilistic Model Checker for MDPs")
    
@@ -14,8 +16,8 @@ if __name__ == "__main__":
         help="Path to the Modest executable"
     )
     parser.add_argument(
-        "--input_dir",
-        help="Directory containing the Modest model file"
+        "--model-file",
+        help="Path to the Modest model file"
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -50,20 +52,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print(f"Input directory: {args.input_dir}")
-    print(f"Modest executable: {args.modest}")
-
-    print("-"*20)
-    print("Export Modest model to python")
-    print("-"*20)
-    convert_modest_to_python(args.input_dir, args.modest)
-
     print("-"*20)
     print("Load Modest model")
     print("-"*20)
-    from model import Model
-    mmodel=Model()
-    mmodel.info()
+    spec = util.spec_from_file_location("modest", args.model_file)
+    model = util.module_from_spec(spec)
+    spec.loader.exec_module(model)
+    mmodel = model.Network()
+    # mmodel.info()
 
     if args.command == "explore":
         print("-"*20)
@@ -74,10 +70,15 @@ if __name__ == "__main__":
             print(str(p))
     elif args.command == "check":
         print("-"*20)
-        print(f"Check Modest model: {args.mode}")
+        print(f"Check Modest model: {args.algorithm}")
+        if args.algorithm == Algorithm.VALUE_ITERATION:
+            from value_iteration import value_iteration
+            value_iteration(mmodel)
+        else:
+            raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
         print("-"*20)
 
     print("-"*20)
     print("Clean up")
     print("-"*20)
-    cleanup()
+    #cleanup()
