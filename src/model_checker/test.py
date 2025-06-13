@@ -1,0 +1,52 @@
+import sys
+import os
+import subprocess
+
+def test():
+    sucess = True
+    info = {
+        "blocksworld": {
+            "args": {
+                "n": "5"
+            },
+            "results": {
+                "goal": "1"
+            }
+        }
+    }
+
+    modest_path = sys.argv[1]
+
+    for k, v in info.items():
+        print(f"testing {k}")
+
+        if not os.path.exists(f"examples/{k}.py"):
+            args_text = " ".join([f"{k}={v}" for k, v in v["args"].items()])
+            cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"examples/{k}.py"]
+            subprocess.run(cmd)
+        
+        cmd = ["python3", "src/model_checker/main.py", "--model-file", f"examples/{k}.py", "check"]
+        output = subprocess.run(cmd, capture_output=True, text=True)
+        for result in v["results"]:
+            line = get_line_with_result(output.stdout, result)
+            if line is None:
+                print(f"no line found for {result}")
+                continue
+            parsed_line = parse_line(line)
+            if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
+                print(f"result for {result} is {parsed_line} but expected {v['results'][result]}")
+                sucess = False
+            print(parsed_line)
+    if not sucess:
+        exit(1)
+
+def get_line_with_result(output, result):
+    for line in output.split("\n"):
+        if result in line:
+            return line
+
+def parse_line(line):
+    return line.split("=")[1]
+
+if __name__ == "__main__":
+    test()
