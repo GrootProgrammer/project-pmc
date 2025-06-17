@@ -64,7 +64,8 @@ def test():
         if not os.path.exists(f"examples/{k}.py"):
             args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
             cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"examples/{k}.py"]
-            _ = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+            env = os.environ.copy()
+            _ = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
         
         cmd = ["python3", "src/model_checker/main.py", "--python-model", f"examples/{k}.py", "check"]
         output = subprocess.run(cmd, capture_output=True, text=True)
