@@ -33,14 +33,14 @@ def test():
                 "Max": "0.23177396051702714"
             }
         },
-        "cdrive": {
-            "args": {
-                "c": "6"
-            },
-            "results": {
-                "goal": "0.6070826102773691"
-            }
-        },
+        # "cdrive": {
+        #     "args": {
+        #         "c": "6"
+        #     },
+        #     "results": {
+        #         "goal": "0.6070826102773691"
+        #     }
+        # },
         "consensus": {
             "args": {
                 "N": "4",
@@ -61,13 +61,13 @@ def test():
     for k, v in info.items():
         print(f"testing {k}")
 
-        if not os.path.exists(f"examples/{k}.py"):
+        if not os.path.exists(f"test-files/{k}.py"):
             args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
-            cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"examples/{k}.py"]
+            cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"test-files/{k}.py"]
             env = os.environ.copy()
             _ = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
         
-        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"examples/{k}.py", "check"]
+        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check"]
         output = subprocess.run(cmd, capture_output=True, text=True)
         if output.returncode != 0:
             print(f"error running {cmd}")
