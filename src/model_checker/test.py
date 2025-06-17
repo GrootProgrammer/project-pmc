@@ -74,7 +74,7 @@ def test():
     modest_path = sys.argv[1]
 
     for k, v in info.items():
-        print(f"testing {k}")
+        print(f"testing {k}", flush=True)
 
         if not os.path.exists(f"test-files/{k}.py"):
             args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
