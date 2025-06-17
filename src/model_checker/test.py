@@ -103,7 +103,7 @@ def test():
                 print(line)
                 print(output.stdout)
                 continue
-            print(f"{result}: expected: {v['results'][result]}, actual: {parsed_line}")
+            print(f"{result}: expected: {v['results'][result]}, actual: {parsed_line}", flush=True)
     if not sucess:
         exit(1)
 
