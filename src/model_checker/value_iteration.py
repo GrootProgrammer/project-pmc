@@ -5,12 +5,14 @@
 
 import threading     
 import sys
+from queue import Queue
 
 def value_iteration(mmodel):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
     print(len(opt_model.opt['states']))
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
+    properties = [p for p in properties if p.is_valid]
     threads = []
     # lets multithread if it is allowed
     if hasattr(sys, "is_gil_enabled") and sys._is_gil_enabled():
@@ -37,55 +39,64 @@ def value_iteration_thread(prop):
     elif prop.is_reward:
         c = {s: 0 for s in S}
 
-    # these should be parameters
+    #import sympy as sp
+#
+    #v = {s: sp.Symbol(f"v_{s}") for s in S}
+#
+    #sys.setrecursionlimit(15000)
+    #eqs = []
+    #for s in S:
+    #    if s in G:
+    #        eqs.append(sp.Eq(v[s], 1.0))
+    #    elif s in S0:
+    #        eqs.append(sp.Eq(v[s], 0.0))
+    #    else:
+    #        # For each action, calculate the sum of probabilities * values
+    #        action_sums = []
+    #        for a in prop.get_actions(s):
+    #            tmp = 0
+    #            for (s_prime, prob) in prop.get_next_state(s, a).items():
+    #                tmp += (v[s_prime] + prop.get_reward(s, a, s_prime)) * prob
+    #            action_sums.append(tmp)
+    #        
+    #        # Take maximum over all action sums by comparing each pair
+    #        if len(action_sums) > 0:
+    #            max_expr = action_sums[0]
+    #            for expr in action_sums[1:]:
+    #                max_expr = sp.Max(max_expr, expr)
+    #            eqs.append(sp.Eq(v[s], max_expr))
+#
+    ## Solve system of equations
+    #solution = sp.solve(eqs, list(v.values()))
+    #if solution:
+    #    print(f"{prop.name}={solution[v[0]]}")
+
+     # these should be parameters
     max_iterations = sys.maxsize
     error = 1e-6
-
+#
     # actual value iteration here:
     for _ in range(max_iterations):
         def bellman_update(v):
             _v = {}
             for s in v:
-                if prop.is_reachability:
-                    if s in G:
-                        _v[s] = 1
-                    else:
-                        # for some reason there are states with no actions that max and min cannot handle so we just keep repeating the same value (which should be 0 or 1 ?)
-                        if s in G:
-                            _v[s] = 1
-                            continue
-                        if s in S0:
-                            _v[s] = 0
-                            continue
-                        if len(prop.get_actions(s)) == 0:
-                            _v[s] = v[s]
-                        else:
-                            argmax = [
-                                sum(
-                                    [
-                                        probability * v[s_prime] for (s_prime, probability) in prop.get_next_state(s, a).items()
-                                    ]
-                                ) for a in prop.get_actions(s)
-                            ]
-                            _v[s] = prop.get_operation()(argmax)
+                if s in G:
+                    _v[s] = 1
+                    continue
+                if s in S0:
+                    _v[s] = 0
+                    continue
+                if len(prop.get_actions(s)) == 0:
+                    _v[s] = v[s]
                 else:
-                    # this should be rewards here
-                    if s in G:
-                        _v[s] = 1
-                        continue
-                    if not prop.is_safe(s):
-                        _v[s] = 0
-                        continue
-                    if len(prop.get_actions(s)) == 0:
-                        _v[s] = v[s]
-                        continue
-                    paths = []
-                    for a in prop.get_actions(s):
-                        r = 0
-                        for (s_prime, prob) in prop.get_next_state(s, a).items():
-                            r += prob * (v[s_prime])
-                        paths.append(r)
-                    _v[s] = prop.get_operation()(paths)
+                    argmax = [
+                        sum(
+                            [
+                                probability * (v[s_prime] + prop.get_reward(s, a, s_prime)) for (s_prime, probability) in prop.get_next_state(s, a).items()
+                            ]
+                        ) for a in prop.get_actions(s)
+                    ]
+                    _v[s] = prop.get_operation()(argmax)
             return _v
         
         _v = bellman_update(c)
@@ -107,7 +118,7 @@ class Model:
             new_states = []
             for s in old_new_states:
                 # not sure why this is needed as we guard against it, but it is needed
-                if s in new_model["states"]:
+                if s in new_model["transitions"]:
                     continue
                 new_model["states"].append(s)
                 new_model["transitions"][s] = { a: { mmodel.network.jump(s, a, b): b.probability for b in mmodel.network.get_branches(s, a) } for a in mmodel.network.get_transitions(s)}
@@ -127,7 +138,7 @@ class Model:
         # this is just to check that the transition probabilities all sum to 1 (barring floating point errors)
         for s in new_model["transitions"].keys():
             for a in new_model["transitions"][s].keys():
-                assert abs(sum([p for p in new_model["transitions"][s][a].values()]) - 1) < 0.0000000000000001
+                assert abs(sum([p for p in new_model["transitions"][s][a].values()]) - 1) < 0.0000000000001
 
         assert all([(s in new_model["states"]) for s in new_model["transitions"].keys()])
         assert all([(s in new_model["transitions"]) for s in new_model["states"]])
@@ -192,8 +203,7 @@ class Property:
             self.safe_exp = None        
 
         # xor assertion
-        assert (self.is_probability or self.is_reward)
-        assert (not (self.is_probability and self.is_reward))
+        self.is_valid = (self.is_probability or self.is_reward) and (not (self.is_probability and self.is_reward))
 
         self.model = model
         self.goal_cache = {}
@@ -211,6 +221,26 @@ class Property:
         if s not in self.safe_cache:
             self.safe_cache[s] = self.model.old.network.get_expression_value(self.model.rev[s], self.safe_exp)
         return self.safe_cache[s]
+
+    def get_reward(self, s, a, s_prime):
+        if self.reward_exp is None:
+            return 0
+        if s not in self.reward_cache:
+            S = self.model.rev[s]
+            S_prime = self.model.rev[s_prime]
+
+            branches = self.model.old.network.get_branches(S, a)
+            n = 0
+            total = 0
+            for b in branches:
+                reward = [self.reward_exp].copy()
+                new_state = self.model.old.network.jump(S, a, b, reward)
+                if new_state == S_prime:
+                    n += 1
+                    total += b.probability * reward[0]
+            assert n > 0
+            self.reward_cache[(s,a,s_prime)] = total / n
+        return self.reward_cache[(s,a,s_prime)]
     
     def get_states(self):
         return self.model.get_states()
@@ -225,12 +255,12 @@ class Property:
         return self.model.get_next_state(s, a)
 
     def get_operation(self):
-        if self.exp.op == 'p_min':
+        if 'min' in self.exp.op:
             return min
-        elif self.exp.op == 'p_max':
+        if 'max' in self.exp.op:
             return max
-        else:
-            raise NotImplementedError("Operation not supported yet: " + self.exp.op)
+        
+        raise NotImplementedError("Operation not supported yet: " + self.exp.op)
     
     def get_Smin0(self):
         S = self.get_states()
