@@ -3,3 +3,4 @@
 src/model_checker/modest/**
 !src/model_checker/modest/note.txt
 Modest
+.direnv/
