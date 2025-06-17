@@ -34,7 +34,7 @@
             python314
           ];
           shellHook = ''
-            export PATH="${modest}:$PATH"
+            export MODEST_PATH="${modest}/modest"
           '';
         };
       };
