@@ -4,7 +4,7 @@
 # made by: Ryan Groot
 
 import threading     
-import sys                                                         
+import sys
 
 def value_iteration(mmodel):
     mmodel = mmodel.network
@@ -28,32 +28,35 @@ def value_iteration_thread(prop):
     # all states
     S = prop.get_states()
     # all states that satisfy the goal
-    G = [s for s in S if prop.get_goal_value(s) == True]
+    G = set([s for s in S if prop.get_goal_value(s) == True])
+    # all states that are not safe
+    S0 = set([s for s in S if prop.is_safe(s) == False])
 
     if prop.is_probability:
         c = {s: 1 if s in G else 0 for s in S}
     elif prop.is_reward:
-        S1 = prop.get_Smin1() if prop.exp.op != "p_max" else prop.getSmax1()
+        c = {s: 0 for s in S}
 
-        c = {s: 0 if s in S1 else float('inf') for s in S}
-
-        for s in G:
-            assert s in S1
-        
     # these should be parameters
     max_iterations = sys.maxsize
     error = 1e-6
 
     # actual value iteration here:
     for _ in range(max_iterations):
-        def update_v(v):
+        def bellman_update(v):
             _v = {}
             for s in v:
-                if prop.is_probability:
+                if prop.is_reachability:
                     if s in G:
                         _v[s] = 1
                     else:
-                        # for some reason there are states with no actions that max and min cannot handle so we just keep repeating the same value (which should be 0 or 1 anyways)
+                        # for some reason there are states with no actions that max and min cannot handle so we just keep repeating the same value (which should be 0 or 1 ?)
+                        if s in G:
+                            _v[s] = 1
+                            continue
+                        if s in S0:
+                            _v[s] = 0
+                            continue
                         if len(prop.get_actions(s)) == 0:
                             _v[s] = v[s]
                         else:
@@ -68,21 +71,24 @@ def value_iteration_thread(prop):
                 else:
                     # this should be rewards here
                     if s in G:
+                        _v[s] = 1
+                        continue
+                    if not prop.is_safe(s):
                         _v[s] = 0
-                    elif s not in S1:
-                        _v[s] = float('inf')
-                    else:
-                        paths = []
-                        for a in prop.get_actions(s):
-                            r = 0
-                            for (s_prime, prob) in prop.get_branches(s, a):
-                                raise Exception("here")
-                                r += prob * (v[s_prime])
-                            paths.append(r)
-                        _v[s] = prop.get_operation()(paths)
+                        continue
+                    if len(prop.get_actions(s)) == 0:
+                        _v[s] = v[s]
+                        continue
+                    paths = []
+                    for a in prop.get_actions(s):
+                        r = 0
+                        for (s_prime, prob) in prop.get_next_state(s, a).items():
+                            r += prob * (v[s_prime])
+                        paths.append(r)
+                    _v[s] = prop.get_operation()(paths)
             return _v
         
-        _v = update_v(c)
+        _v = bellman_update(c)
         if all(abs(_v[s] - c[s]) / _v[s] < error for s in c if _v[s] != float('inf') and _v[s] != 0):
             break
         c = _v
@@ -179,10 +185,12 @@ class Property:
         if self.is_probability or self.is_reachability:
             self.safe_exp = args[0].args[0].args[0] if args[0].op == 'until' else None
             self.goal_exp = args[0].args[1].args[0] if args[0].op == 'until' else args[0].args[0].args[0]
+            self.reward_exp = None
         if self.is_reward:
             self.goal_exp = args[1].args[0]
             self.reward_exp = args[0]
-        
+            self.safe_exp = None        
+
         # xor assertion
         assert (self.is_probability or self.is_reward)
         assert (not (self.is_probability and self.is_reward))
@@ -190,11 +198,19 @@ class Property:
         self.model = model
         self.goal_cache = {}
         self.reward_cache = {}
+        self.safe_cache = {}
 
     def get_goal_value(self, s):
         if s not in self.goal_cache:
             self.goal_cache[s] = self.model.old.network.get_expression_value(self.model.rev[s], self.goal_exp)
         return self.goal_cache[s]
+
+    def is_safe(self, s):
+        if self.safe_exp is None:
+            return True
+        if s not in self.safe_cache:
+            self.safe_cache[s] = self.model.old.network.get_expression_value(self.model.rev[s], self.safe_exp)
+        return self.safe_cache[s]
     
     def get_states(self):
         return self.model.get_states()
@@ -265,7 +281,7 @@ class Property:
 
     def get_Smax0(self):
         S = self.get_states()
-        R = [s for s in S if self.get_goal_value(s)]
+        R = [s for s in S if self.get_goal_value(s) == 1]
         _R = []
         while set(R) != set(_R):
             _R = R.copy()
