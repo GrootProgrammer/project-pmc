@@ -15,7 +15,7 @@ def value_iteration(mmodel):
     properties = [p for p in properties if p.is_valid]
     threads = []
     # lets multithread if it is allowed
-    if hasattr(sys, "is_gil_enabled") and sys._is_gil_enabled():
+    if not hasattr(sys, "is_gil_enabled") or not sys._is_gil_enabled():
         for prop in properties:
             value_iteration_thread(prop)
     else:
@@ -31,148 +31,116 @@ def value_iteration_thread(prop):
     S = prop.get_states()
     # all states that satisfy the goal
     G = set([s for s in S if prop.get_goal_value(s) == True])
+    assert len(G) > 0
     # all states that are not safe
-    S0 = set([s for s in S if prop.is_safe(s) == False])
+    S0 = set([s for s in S if prop.is_safe(s) == False or len(prop.get_actions(s)) == 0])
 
     if prop.is_probability:
         c = {s: 1 if s in G else 0 for s in S}
     elif prop.is_reward:
         c = {s: 0 for s in S}
 
-    #import sympy as sp
-#
-    #v = {s: sp.Symbol(f"v_{s}") for s in S}
-#
-    #sys.setrecursionlimit(15000)
-    #eqs = []
-    #for s in S:
-    #    if s in G:
-    #        eqs.append(sp.Eq(v[s], 1.0))
-    #    elif s in S0:
-    #        eqs.append(sp.Eq(v[s], 0.0))
-    #    else:
-    #        # For each action, calculate the sum of probabilities * values
-    #        action_sums = []
-    #        for a in prop.get_actions(s):
-    #            tmp = 0
-    #            for (s_prime, prob) in prop.get_next_state(s, a).items():
-    #                tmp += (v[s_prime] + prop.get_reward(s, a, s_prime)) * prob
-    #            action_sums.append(tmp)
-    #        
-    #        # Take maximum over all action sums by comparing each pair
-    #        if len(action_sums) > 0:
-    #            max_expr = action_sums[0]
-    #            for expr in action_sums[1:]:
-    #                max_expr = sp.Max(max_expr, expr)
-    #            eqs.append(sp.Eq(v[s], max_expr))
-#
-    ## Solve system of equations
-    #solution = sp.solve(eqs, list(v.values()))
-    #if solution:
-    #    print(f"{prop.name}={solution[v[0]]}")
-
      # these should be parameters
     max_iterations = sys.maxsize
     error = 1e-6
-#
+
     # actual value iteration here:
-    for _ in range(max_iterations):
+    for iteration in range(max_iterations):
         def bellman_update(v):
             _v = {}
             for s in v:
                 if s in G:
-                    _v[s] = 1
+                    _v[s] = 1 if prop.is_probability else 0
                     continue
                 if s in S0:
                     _v[s] = 0
                     continue
-                if len(prop.get_actions(s)) == 0:
-                    _v[s] = v[s]
-                else:
-                    argmax = [
-                        sum(
-                            [
-                                probability * (v[s_prime] + prop.get_reward(s, a, s_prime)) for (s_prime, probability) in prop.get_next_state(s, a).items()
-                            ]
-                        ) for a in prop.get_actions(s)
-                    ]
-                    _v[s] = prop.get_operation()(argmax)
+                argmax = []
+                for a in prop.get_actions(s):
+                    a_sum = sum([prop.get_transition_prob(s, a, s_prime) * (v[s_prime] + prop.get_reward(s,a,s_prime)) for s_prime in prop.get_next_states(s, a)])
+                    argmax.append(a_sum)
+                _v[s] = prop.get_operation()(argmax)
             return _v
         
         _v = bellman_update(c)
-        if all(abs(_v[s] - c[s]) / _v[s] < error for s in c if _v[s] != float('inf') and _v[s] != 0):
+        def difference(v1, v2, s):
+            return abs(v1[s] - v2[s])
+        if all([difference(_v, c, s) < error for s in S]):
+            #print(f"true stable: {_v == bellman_update(c)} at iteration {iteration}")
             break
         c = _v
-    print(f"{prop.name}={_v[0]}")
+    print(f"{prop.name}={_v[prop.model.trans[prop.model.old.network.get_initial_state()]]}")
     return
 
 class Model:
     def __init__(self, mmodel):
-        new_model = {}
-        new_states = [mmodel.network.get_initial_state()]
-        new_model["states"] = []
-        new_model["transitions"] = {}
-        
-        while len(new_states) > 0:
-            old_new_states = new_states
-            new_states = []
-            for s in old_new_states:
-                # not sure why this is needed as we guard against it, but it is needed
-                if s in new_model["transitions"]:
+        def breadth_first_search(mmodel):
+            new_model = {}
+            self.initial_state = mmodel.network.get_initial_state()
+            from queue import Queue
+            new_states = Queue()
+            new_states.put(self.initial_state)
+            new_model["states"] = set()
+            new_model["transitions"] = {}
+
+            while not new_states.empty():
+                s = new_states.get()
+                if s in new_model["states"]:
                     continue
-                new_model["states"].append(s)
+                new_model["states"].add(s)
                 new_model["transitions"][s] = { a: { mmodel.network.jump(s, a, b): b.probability for b in mmodel.network.get_branches(s, a) } for a in mmodel.network.get_transitions(s)}
 
                 for a in mmodel.network.get_transitions(s):
                     for b in mmodel.network.get_branches(s, a):
-                        # if len(b.branches) > 1:
-                        #     print(b.branches)
-                        #     raise Exception("here")
                         assert b.probability > 0
                         jmp = mmodel.network.jump(s, a, b)
-                        new_states.append(jmp)
+                        new_states.put(jmp)
 
-        # I had issues with this before, but i think that was because a.label is not unique
-        for s in new_model["transitions"].keys():
-            assert len(new_model["transitions"][s]) == len(mmodel.network.get_transitions(s))
-        # this is just to check that the transition probabilities all sum to 1 (barring floating point errors)
-        for s in new_model["transitions"].keys():
-            for a in new_model["transitions"][s].keys():
-                assert abs(sum([p for p in new_model["transitions"][s][a].values()]) - 1) < 0.0000000000001
+            return new_model
 
-        assert all([(s in new_model["states"]) for s in new_model["transitions"].keys()])
-        assert all([(s in new_model["transitions"]) for s in new_model["states"]])
+        def check_model(t, r, m):
+            # I had issues with this before, but i think that was because a.label is not unique
+            for s in m["transitions"].keys():
+                assert len(m["transitions"][s]) == len(mmodel.network.get_transitions(r[s]))
+            # this is just to check that the transition probabilities all sum to 1 (barring floating point errors)
+            for s in m["transitions"].keys():
+                for a in new_model["transitions"][s].keys():
+                    assert abs(sum([p for p in new_model["transitions"][s][a].values()]) - 1) < 0.0000001
 
-        # here we convert all the states to their index representation to hopefully provide a faster lookup in the future and caching possibility
-        translation_table = {}
-        rev_table = {}
-        new_states = []
+            assert all([(s in m["states"]) for s in m["transitions"].keys()])
+            assert all([(s in m["transitions"]) for s in m["states"]])
 
-        for i, s in enumerate(new_model["states"]):
-            translation_table[s] = i
-            rev_table[i] = s
-            new_states.append(i)
-        new_model["states"] = new_states
-        new_model["transitions"] = {translation_table[s]: { a: { translation_table[s_prime]: p for (s_prime,p) in s_.items() } for (a,s_) in v.items()} for (s,v) in new_model['transitions'].items() }
-        
-        # I had issues with this before, but i think that was because a.label is not unique
-        for s in new_model["transitions"].keys():
-            assert len(new_model["transitions"][s]) == len(mmodel.network.get_transitions(rev_table[s]))
-        # this is just to check that the transition probabilities all sum to 1 (barring floating point errors)
-        for s in new_model["transitions"].keys():
-            for a in new_model["transitions"][s].keys():
-                assert abs(sum([p for p in new_model["transitions"][s][a].values()]) - 1) < 0.0000000000000001
+        def translate_to_index(m):
+            # here we convert all the states to their index representation to hopefully provide a faster lookup in the future and caching possibility
+            translation_table = {}
+            rev_table = {}
+            new_states = set()
 
-        assert all([(s in new_model["states"]) for s in new_model["transitions"].keys()])
-        assert all([(s in new_model["transitions"]) for s in new_model["states"]])
+            for i, s in enumerate(m["states"]):
+                translation_table[s] = i
+                rev_table[i] = s
+                new_states.add(i)
+            m["states"] = new_states
+            m["transitions"] = {translation_table[s]: { a: { translation_table[s_prime]: p for (s_prime,p) in s_.items() } for (a,s_) in v.items()} for (s,v) in m['transitions'].items() }
+
+            return translation_table, rev_table, m
+
+        new_model = breadth_first_search(mmodel)
+        identity_table = {s: s for s in new_model["states"]}
+        check_model(identity_table, identity_table, new_model)
+        translation_table, rev_table, new_model = translate_to_index(new_model)
+        check_model(translation_table, rev_table, new_model)
         
         self.old = mmodel
         self.opt = new_model
         self.trans = translation_table
         self.rev = rev_table
 
+    def get_initial_state(self):
+        return self.trans[self.old.network.get_initial_state()]
+
     def get_states(self):
-        return self.opt['states']
+        return self.opt['transitions'].keys()
 
     def get_actions(self, s):
         return self.opt['transitions'][s].keys()
@@ -180,8 +148,8 @@ class Model:
     def get_transition_prob(self, s, a, s_prime):
         return self.opt['transitions'][s][a][s_prime]
 
-    def get_next_state(self, s, a):
-        return self.opt['transitions'][s][a]
+    def get_next_states(self, s, a):
+        return self.opt['transitions'][s][a].keys()
 
 class Property:
     def __init__(self, model, prop):
@@ -200,7 +168,7 @@ class Property:
         if self.is_reward:
             self.goal_exp = args[1].args[0]
             self.reward_exp = args[0]
-            self.safe_exp = None        
+            self.safe_exp = None
 
         # xor assertion
         self.is_valid = (self.is_probability or self.is_reward) and (not (self.is_probability and self.is_reward))
@@ -251,8 +219,14 @@ class Property:
     def get_transition_prob(self, s, a, s_prime):
         return self.model.get_transition_prob(s, a, s_prime)
 
-    def get_next_state(self, s, a):
-        return self.model.get_next_state(s, a)
+    def get_next_states(self, s, a):
+        return self.model.get_next_states(s, a)
+
+    def is_min(self):
+        return 'min' in self.exp.op
+    
+    def is_max(self):
+        return 'max' in self.exp.op
 
     def get_operation(self):
         if 'min' in self.exp.op:
@@ -261,104 +235,3 @@ class Property:
             return max
         
         raise NotImplementedError("Operation not supported yet: " + self.exp.op)
-    
-    def get_Smin0(self):
-        S = self.get_states()
-        R = [s for s in S if self.get_goal_value(s) == 1]
-        _R = []
-
-        while set(R) != set(_R):
-            _R = R.copy()
-            for s in S:
-                forall_a = True
-                for a in self.get_actions(s):
-                    exists_delta = False
-                    for (s_prime, prob) in self.get_next_state(s, a).items():
-                        if s_prime in _R and prob > 0:
-                            exists_delta = True
-                            break
-                    if not exists_delta:
-                        forall_a = False
-                        break
-                if forall_a and s not in R:
-                    R.append(s)
-
-        return [s for s in S if s not in R]
-
-
-    def get_Smin1(self):
-        S = self.get_states()
-        Smin0 = self.getSmin0()
-        R = [s for s in S if s not in Smin0]
-        _R = []
-
-        while set(R) != set(_R):
-            _R = R.copy()
-            for s in R:
-                exists_a = False
-                for a in self.get_actions(s):
-                    exists_delta = False
-                    for (s_prime, prob) in self.get_next_state(s, a).items():
-                        if s_prime not in _R and prob > 0:
-                            exists_delta = True
-                            break
-                    if not exists_delta:
-                        exists_a = True
-                        break
-                if exists_a and s in R:
-                    R.remove(s)
-        return R
-
-    def get_Smax0(self):
-        S = self.get_states()
-        R = [s for s in S if self.get_goal_value(s) == 1]
-        _R = []
-        while set(R) != set(_R):
-            _R = R.copy()
-            for s in S:
-                exists_a = False
-                for a in self.get_actions(s):
-                    exists_delta = False
-                    for (s_prime, prob) in self.get_next_state(s, a).items():
-                        if s_prime in _R and prob > 0:
-                            exists_delta = True
-                            break
-                    if exists_delta:
-                        exists_a = True
-                        break
-                if exists_a and s in R:
-                    R.remove(s)
-        return [s for s in S if s not in R]
-
-    def get_Smax1(self):
-        S = self.get_states()
-        T = [s for s in S if self.get_goal_value(s) == 1]
-        R = S.copy()
-        _R = []
-        __R = []
-
-        while set(R) != set(_R):
-            _R = R.copy()
-            R = T.copy()
-            
-            while set(R) != set(__R):
-                __R = R.copy()
-                for s in S:
-                    exists_a = False
-                    for a in self.get_actions(s):
-                        forall_s = True
-                        exists_s = False
-
-                        for (s_prime, prob) in self.get_next_state(s,a).items():
-                            if s_prime not in _R or prob == 0:
-                                forall_s = False
-                                break
-                            if s_prime in __R and prob > 0:
-                                exists_s = True
-
-                        if forall_s and exists_s:
-                            exists_a = True
-                            break
-                    if exists_a and s not in R:
-                        R.append(s)
-        return R

@@ -75,7 +75,7 @@ if __name__ == "__main__":
     mmodelN = model.Network()
     from model import Model
     mmodel = Model(mmodelN)
-    mmodel.info()
+    # mmodel.info()
 
     if args.command == "explore":
         print("-"*20)

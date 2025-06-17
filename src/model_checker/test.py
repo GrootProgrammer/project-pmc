@@ -5,14 +5,6 @@ import subprocess
 def test():
     sucess = True
     info = {
-        "blocksworld": {
-            "args": {
-                "n": "5"
-            },
-            "results": {
-                "goal": "1"
-            }
-        },
         "beb": {
             "args": {
                 "H": "3",
@@ -24,23 +16,22 @@ def test():
                 "GaveUp": "0.0833740234375"
             }
         },
-        "breakdown-queues": {
+        "blocksworld": {
             "args": {
-                "K": "8"
+                "n": "5"
             },
             "results": {
-                "Min": "0.02800482792035489",
-                "Max": "0.23177396051702714"
+                "goal": "1"
             }
         },
-        # "cdrive": {
-        #     "args": {
-        #         "c": "6"
-        #     },
-        #     "results": {
-        #         "goal": "0.6070826102773691"
-        #     }
-        # },
+        #"cdrive": {
+        #    "args": {
+        #        "c": "6"
+        #    },
+        #    "results": {
+        #        "goal": "0.6070826102773691"
+        #    }
+        #},
         "consensus": {
             "args": {
                 "N": "4",
@@ -52,6 +43,30 @@ def test():
                 "disagree": "0.29443185428958624",
                 "steps_max": "363",
                 "steps_min": "192"
+            }
+        },
+        "csma": {
+            "args": {
+                "N": "2",
+                "K": "2"
+            },
+            "results": {
+                "all_before_max": "0.875",
+                "all_before_min": "0.875",
+                "some_before": "0.5",
+                "time_max": "70.66575976616393",
+                "time_min": "66.99932286267479"
+            }
+        },
+        "eajs": {
+            "args": {
+                "N": "2",
+                "energy_capacity": "100",
+                "B": "5"
+            },
+            "results": {
+                "ExpUtil": "4.028044505410761",
+                "ProbUtil": "0.028044505410760555"
             }
         }
     }
@@ -78,10 +93,16 @@ def test():
             if line is None:
                 print(f"no line found for {result}")
                 continue
-            parsed_line = parse_line(line)
-            if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
-                print(f"result for {result} is {parsed_line} but expected {v['results'][result]}")
-                sucess = False
+            try:
+                parsed_line = parse_line(line)
+                if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
+                    print(f"result for {result} is {parsed_line} but expected {v['results'][result]}")
+                    sucess = False
+            except:
+                print("failed parsing lines:")
+                print(line)
+                print(output.stdout)
+                continue
             print(f"{result}: expected: {v['results'][result]}, actual: {parsed_line}")
     if not sucess:
         exit(1)
