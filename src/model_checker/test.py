@@ -17,7 +17,7 @@ def test():
             "args": {
                 "H": "3",
                 "K": "4",
-                "N": "5"
+                "N": "3"
             },
             "results": {
                 "LineSeized": "0.9166259765625",
@@ -31,6 +31,27 @@ def test():
             "results": {
                 "Min": "0.02800482792035489",
                 "Max": "0.23177396051702714"
+            }
+        },
+        "cdrive": {
+            "args": {
+                "c": "6"
+            },
+            "results": {
+                "goal": "0.6070826102773691"
+            }
+        },
+        "consensus": {
+            "args": {
+                "N": "4",
+                "K": "2"
+            },
+            "results": {
+                "c1": "1.0",
+                "c2": "0.3173828125",
+                "disagree": "0.29443185428958624",
+                "steps_max": "363",
+                "steps_min": "192"
             }
         }
     }
@@ -60,7 +81,7 @@ def test():
             if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
                 print(f"result for {result} is {parsed_line} but expected {v['results'][result]}")
                 sucess = False
-            print(parsed_line)
+            print(f"{result}: expected: {v['results'][result]}, actual: {parsed_line}")
     if not sucess:
         exit(1)
 
