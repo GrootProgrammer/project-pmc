@@ -1,0 +1,4 @@
+run_test_program:
+  image: nixos/nix:latest
+  script:
+    - nix develop --command python src/model_checker/test.py modest
