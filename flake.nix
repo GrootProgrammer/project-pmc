@@ -32,16 +32,10 @@
           name = "python devShell";
           buildInputs = with pkgs; [
             python314
-            nix-ld
+            autoPatchelfHook
           ];
           shellHook = ''
             export MODEST_PATH="${modest}/modest"
-            export NIX_LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
-              pkgs.stdenv.cc.cc.lib
-              pkgs.zlib
-              pkgs.glibc
-            ]}
-            export NIX_LD=${pkgs.glibc}/lib/ld-linux-x86-64.so.2
           '';
         };
       };
