@@ -30,9 +30,11 @@
       in {
         devShells.default = pkgs.mkShell {
           name = "python devShell";
+          nativeBuildInputs = with pkgs; [
+            autoPatchelfHook
+          ];
           buildInputs = with pkgs; [
             python314
-            autoPatchelfHook
           ];
           shellHook = ''
             export MODEST_PATH="${modest}/modest"
