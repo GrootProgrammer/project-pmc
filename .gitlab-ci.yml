@@ -1,5 +1,4 @@
 run_test_program:
   image: nixos/nix:latest
   script:
-    - nix develop --extra-experimental-features nix-command --extra-experimental-features flakes --command echo "${MODEST_PATH}"
-    - nix develop --extra-experimental-features nix-command --extra-experimental-features flakes --command python src/model_checker/test.py "${MODEST_PATH}"
+    - nix develop --extra-experimental-features nix-command --extra-experimental-features flakes --command ./test.sh
