@@ -35,10 +35,7 @@ def value_iteration_thread(prop):
     # all states that are not safe
     S0 = set([s for s in S if prop.is_safe(s) == False or len(prop.get_actions(s)) == 0])
 
-    if prop.is_probability:
-        c = {s: 1 if s in G else 0 for s in S}
-    elif prop.is_reward:
-        c = {s: 0 for s in S}
+    c = {s: 0 for s in S}
 
      # these should be parameters
     max_iterations = sys.maxsize
