@@ -65,8 +65,79 @@ def test():
                 "B": "5"
             },
             "results": {
-                "ExpUtil": "4.028044505410761",
-                "ProbUtil": "0.028044505410760555"
+                "ExpUtil": "4.028044505410761"
+            }
+        },
+        "tireworld": {
+            "args": {
+                "n": "17"
+            },
+            "results": {
+                "goal": "0.23328"
+            }
+        },
+        "triangle-tireworld": {
+            "args": {
+                "l": "9"
+            },
+            "results": {
+                "goal": "1"
+            }
+        },
+        "wlan": {
+            "args": {
+                "MAX_BACKOFF": "0",
+                "COL": "0"
+            },
+            "results": {
+                "collisions": "1",
+                "cost_max": "28000.956937799045",
+                "cost_min": "7625",
+                "num_collisions": "1.2248803827751196",
+                "time_max": "3791.904761904762",
+                "time_min": "1325"
+            }
+        },
+        "wlan_dl": {
+            "args": {
+                "MAX_BACKOFF": "0",
+                "deadline": "80",
+            },
+            "results": {
+                "goal": "0.81640625"
+            }
+        },
+        "zenotravel": {
+            "args": {
+                "c": "4",
+                "p": "2",
+                "a": "2"
+            },
+            "results": {
+                "goal": "1.0",
+            }
+        },
+        "zeroconf": {
+            "args": {
+                "N": "20",
+                "K": "2",
+                "reset": "true"
+            },
+            "results": {
+                "correct_max": "0.000020103281776956928",
+                "correct_min": "0.000002110327218406747"
+            }
+        },
+        "zeroconf_dl": {
+            "args": {
+                "N": "1000",
+                "K": "1",
+                "reset": "true",
+                "deadline": 10
+            },
+            "results": {
+                "deadline_max": "0.015378937007874016",
+                "deadline_min": "0.001424816450729849"
             }
         }
     }
@@ -80,7 +151,8 @@ def test():
             args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
             cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"test-files/{k}.py"]
             env = os.environ.copy()
-            _ = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
+            output = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
+            print(output.stdout)
         
         cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check"]
         output = subprocess.run(cmd, capture_output=True, text=True)
