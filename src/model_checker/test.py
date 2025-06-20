@@ -197,9 +197,10 @@ def test():
             if algorithm == "exact":
                 continue
             for result in v[algorithm]:
-                if result == "failed" or result == "timeout" or result == "parse error":
+                result_value_str = v[algorithm][result]
+                if result_value_str == "failed" or result_value_str == "timeout" or result_value_str == "parse error":
                     continue
-                result_value = float(v[algorithm][result])
+                result_value = float(result_value_str)
                 exact_value = float(v[algorithm]["exact"])
                 if abs(1 - (result_value / exact_value)) > 0.01:
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
