@@ -50,7 +50,7 @@ def value_iteration_thread(prop):
             _v = {}
             for s in v:
                 if s in G:
-                    _v[s] = 1 if prop.is_probability else 0
+                    _v[s] = 1 if prop.is_probability or prop.is_reachability else 0
                     continue
                 if s in S0:
                     _v[s] = 0
