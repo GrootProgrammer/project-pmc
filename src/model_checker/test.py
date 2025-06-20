@@ -158,8 +158,10 @@ def test():
                 print("\t" + line)
         
         print("\tanswer:")
+        output_info[k]["exact"] = {}
         for result in v["results"]:
             print(f"\t\t{result}: {v['results'][result]}")
+            output_info[k]["exact"][result] = v["results"][result]
         for algorithm in ["vi"]:
             output_info[k][algorithm] = {}
             print(f"\t{algorithm}:")
@@ -188,7 +190,6 @@ def test():
                     except:
                         return "parse error"
                 output_info[k][algorithm][result] = get_result(result)
-                output_info[k][algorithm]["exact"] = v["results"][result]
     
     print(output_info)
     success = True
@@ -201,7 +202,7 @@ def test():
                 if result_value_str == "failed" or result_value_str == "timeout" or result_value_str == "parse error":
                     continue
                 result_value = float(result_value_str)
-                exact_value = float(v[algorithm]["exact"])
+                exact_value = float(v["exact"][result])
                 if abs(1 - (result_value / exact_value)) > 0.01:
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
                     success = False
