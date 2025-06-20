@@ -24,27 +24,27 @@ def test():
                 "goal": "1"
             }
         },
-        #"cdrive": {
-        #    "args": {
-        #        "c": "6"
-        #    },
-        #    "results": {
-        #        "goal": "0.6070826102773691"
-        #    }
-        #},
-        #"consensus": {
-         #   "args": {
-        #        "N": "4",
-       #         "K": "2"
-        #    },
-        #    "results": {
-        #        "c1": "1.0",
-        #        "c2": "0.3173828125",
-        #        "disagree": "0.29443185428958624",
-        #        "steps_max": "363",
-        #        "steps_min": "192"
-        #    }
-        #},
+        "cdrive": {
+            "args": {
+                "c": "6"
+            },
+            "results": {
+                "goal": "0.6070826102773691"
+            }
+        },
+        "consensus": {
+           "args": {
+                "N": "4",
+                "K": "2"
+            },
+            "results": {
+                "c1": "1.0",
+                "c2": "0.3173828125",
+                "disagree": "0.29443185428958624",
+                "steps_max": "363",
+                "steps_min": "192"
+            }
+        },
         "csma": {
             "args": {
                 "N": "2",
@@ -158,7 +158,7 @@ def test():
         for algorithm in ["vi"]:
             print(f"\t{algorithm}:")
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--algorithm", algorithm]
-            output = subprocess.run(cmd, capture_output=True, text=True)
+            output = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             if output.returncode != 0:
                 print(f"\t\terror running {cmd}:")
                 for line in output.stdout.splitlines():
