@@ -189,7 +189,23 @@ def test():
                         return "parse error"
                 output_info[k][algorithm][result] = get_result(result)
                 output_info[k][algorithm]["exact"] = v["results"][result]
+    
     print(output_info)
+    success = True
+    for k, v in output_info.items():
+        for algorithm in v:
+            if algorithm == "exact":
+                continue
+            for result in v[algorithm]:
+                if result == "failed" or result == "timeout" or result == "parse error":
+                    continue
+                result_value = float(v[algorithm][result])
+                exact_value = float(v[algorithm]["exact"])
+                if abs(1 - (result_value / exact_value)) > 0.01:
+                    print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
+                    success = False
+    if not success:
+        exit(1)
 
 def get_line_with_result(output, result):
     for line in output.split("\n"):
