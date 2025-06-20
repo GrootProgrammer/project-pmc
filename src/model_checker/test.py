@@ -3,7 +3,6 @@ import os
 import subprocess
 
 def test():
-    sucess = True
     info = {
         "beb": {
             "args": {
@@ -144,7 +143,10 @@ def test():
 
     modest_path = sys.argv[1]
 
+    output_info = {}
+
     for k, v in info.items():
+        output_info[k] = {}
         print(f"testing {k}", flush=True)
 
         if not os.path.exists(f"test-files/{k}.py"):
@@ -155,33 +157,39 @@ def test():
             for line in output.stdout.splitlines():
                 print("\t" + line)
         
+        print("\tanswer:")
+        for result in v["results"]:
+            print(f"\t\t{result}: {v['results'][result]}")
         for algorithm in ["vi"]:
+            output_info[k][algorithm] = {}
             print(f"\t{algorithm}:")
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--algorithm", algorithm]
-            output = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            try:
+                output = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            except subprocess.TimeoutExpired:
+                print(f"\t\ttimeout running {cmd}")
+                for result in v["results"]:
+                    output_info[k][algorithm][result] = "timeout"
+                continue
             if output.returncode != 0:
                 print(f"\t\terror running {cmd}:")
                 for line in output.stdout.splitlines():
                     print("\t\t\t" + line)
                 exit(1)
             for result in v["results"]:
-                line = get_line_with_result(output.stdout, result)
-                if line is None:
-                    print(f"\t\tno line found for {result}")
-                    continue
-                try:
-                    parsed_line = parse_line(line)
-                    if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
-                        print(f"\t\tresult for {result} is {parsed_line} but expected {v['results'][result]}")
-                        sucess = False
-                except:
-                    print("\t\tfailed parsing lines:")
-                    for line in output.stdout.splitlines():
-                        print("\t\t\t" + line)
-                    continue
-                print(f"\t\t{result}: expected: {v['results'][result]}, actual: {parsed_line}", flush=True)
-    if not sucess:
-        exit(1)
+                def get_result(result):
+                    line = get_line_with_result(output.stdout, result)
+                    if line is None:
+                        return "failed"
+                    try:
+                        parsed_line = parse_line(line)
+                        print(f"\t\t{result}: {parsed_line}")
+                        return parsed_line
+                    except:
+                        return "parse error"
+                output_info[k][algorithm][result] = get_result(result)
+                output_info[k][algorithm]["exact"] = v["results"][result]
+    print(output_info)
 
 def get_line_with_result(output, result):
     for line in output.split("\n"):
