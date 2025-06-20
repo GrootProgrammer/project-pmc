@@ -152,30 +152,34 @@ def test():
             cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"test-files/{k}.py"]
             env = os.environ.copy()
             output = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
-            print(output.stdout)
+            for line in output.stdout.splitlines():
+                print("\t" + line)
         
-        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check"]
-        output = subprocess.run(cmd, capture_output=True, text=True)
-        if output.returncode != 0:
-            print(f"error running {cmd}")
-            print(output.stderr)
-            exit(1)
-        for result in v["results"]:
-            line = get_line_with_result(output.stdout, result)
-            if line is None:
-                print(f"no line found for {result}")
-                continue
-            try:
-                parsed_line = parse_line(line)
-                if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
-                    print(f"result for {result} is {parsed_line} but expected {v['results'][result]}")
-                    sucess = False
-            except:
-                print("failed parsing lines:")
-                print(line)
-                print(output.stdout)
-                continue
-            print(f"{result}: expected: {v['results'][result]}, actual: {parsed_line}", flush=True)
+        for algorithm in ["vi"]:
+            print(f"\t{algorithm}:")
+            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--algorithm", algorithm]
+            output = subprocess.run(cmd, capture_output=True, text=True)
+            if output.returncode != 0:
+                print(f"\t\terror running {cmd}:")
+                for line in output.stdout.splitlines():
+                    print("\t\t\t" + line)
+                exit(1)
+            for result in v["results"]:
+                line = get_line_with_result(output.stdout, result)
+                if line is None:
+                    print(f"\t\tno line found for {result}")
+                    continue
+                try:
+                    parsed_line = parse_line(line)
+                    if abs(float(parsed_line) - float(v["results"][result])) > 1e-5:
+                        print(f"\t\tresult for {result} is {parsed_line} but expected {v['results'][result]}")
+                        sucess = False
+                except:
+                    print("\t\tfailed parsing lines:")
+                    for line in output.stdout.splitlines():
+                        print("\t\t\t" + line)
+                    continue
+                print(f"\t\t{result}: expected: {v['results'][result]}, actual: {parsed_line}", flush=True)
     if not sucess:
         exit(1)
 
