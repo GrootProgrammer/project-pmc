@@ -321,11 +321,12 @@ def test():
                         return "failed"
                     try:
                         parsed_line = parse_line(line)
-                        print(f"\t\t{result}: {parsed_line}")
                         return parsed_line
                     except:
                         return "parse error"
-                output_info[k][algorithm][result] = get_result(result)
+                res = get_result(result)
+                print(f"\t\t{result}: {res}")
+                output_info[k][algorithm][result] = res
     
     print(output_info)
     success = True
