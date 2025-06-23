@@ -83,6 +83,12 @@ def smt_thread(prop):
             else:
                 solver.add(states[s] == z3max(argmax))
 
+    
+    if prop.is_probability:
+        for s in S:
+            solver.add(states[s] >= 0)
+            solver.add(states[s] <= 1)
+
     print("start proving")
     solver.set("timeout", 10000)
     has_solved = solver.check()
