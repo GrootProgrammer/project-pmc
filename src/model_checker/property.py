@@ -32,10 +32,13 @@ class Property:
         return self.goal_cache[s]
 
     def is_safe(self, s):
-        if self.safe_exp is None:
-            return True
         if s not in self.safe_cache:
-            self.safe_cache[s] = self.model.is_safe(s, self.safe_exp)
+            if self.safe_exp is None:
+                if self.is_reward:
+                    if self.exp.op.endswith("_s"):
+                        self.safe_cache[s] = not self.get_goal_value(s)
+            if s not in self.safe_cache:
+                self.safe_cache[s] = self.model.is_safe(s, self.safe_exp)
         return self.safe_cache[s]
 
     def get_reward(self, s, a, s_prime):
