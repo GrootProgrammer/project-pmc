@@ -142,6 +142,7 @@ def test():
     }
 
     modest_path = sys.argv[1]
+    algorithms = ["vi","smt"]
 
     output_info = {}
 
@@ -162,7 +163,7 @@ def test():
         for result in v["results"]:
             print(f"\t\t{result}: {v['results'][result]}")
             output_info[k]["exact"][result] = v["results"][result]
-        for algorithm in ["vi"]:
+        for algorithm in algorithms:
             output_info[k][algorithm] = {}
             print(f"\t{algorithm}:")
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--algorithm", algorithm]
@@ -176,6 +177,8 @@ def test():
             if output.returncode != 0:
                 print(f"\t\terror running {cmd}:")
                 for line in output.stdout.splitlines():
+                    print("\t\t\t" + line)
+                for line in output.stderr.splitlines():
                     print("\t\t\t" + line)
                 exit(1)
             for result in v["results"]:

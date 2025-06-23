@@ -12,4 +12,4 @@ class Algorithm(Enum):
     VALUE_ITERATION = "vi"
     POLICY_ITERATION = "pi"
     INTERVAL_ITERATION = "ii"
-    SOUND_VALUE_ITERATION = "svi"
+    SMT_EXACT = "smt"

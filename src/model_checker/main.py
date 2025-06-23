@@ -90,6 +90,9 @@ if __name__ == "__main__":
         if args.algorithm == Algorithm.VALUE_ITERATION:
             from value_iteration import value_iteration
             value_iteration(mmodel)
+        elif args.algorithm == Algorithm.SMT_EXACT:
+            from smt import smt
+            smt(mmodel)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
         print("-"*20)

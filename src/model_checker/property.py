@@ -19,7 +19,7 @@ class Property:
             self.safe_exp = None
 
         # xor assertion
-        self.is_valid = (self.is_probability or self.is_reward) and (not (self.is_probability and self.is_reward))
+        self.is_valid = (self.is_probability != self.is_reward)
 
         self.model = model
         self.goal_cache = {}
@@ -33,6 +33,9 @@ class Property:
 
     def is_safe(self, s):
         if self.safe_exp is None:
+            if self.is_reward:
+                if self.exp.op.endswith("_s"):
+                    return not self.get_goal_value(s)
             return True
         if s not in self.safe_cache:
             self.safe_cache[s] = self.model.is_safe(s, self.safe_exp)

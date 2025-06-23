@@ -6,4 +6,5 @@
 run_test_program_python:
   image: python
   script:
+    - pip install -r requirements.txt
     - python src/model_checker/test.py "modest"

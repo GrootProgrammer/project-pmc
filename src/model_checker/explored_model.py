@@ -89,6 +89,8 @@ class Model:
         return self.opt['transitions'][s][a].keys()
 
     def get_goal_value(self, s, g_exp):
+        if g_exp is None:
+            return 0
         return self.old.network.get_expression_value(self.rev[s], g_exp)
 
     def is_safe(self, s, safe_exp):
