@@ -63,10 +63,13 @@ def value_iteration_thread(prop):
             return _v
         
         _v = bellman_update(c)
-        def difference(v1, v2, s):
-            return abs(v1[s] - v2[s])
-        if all([difference(_v, c, s) < error for s in S]):
-            #print(f"true stable: {_v == bellman_update(c)} at iteration {iteration}")
+        def difference(new, old, s):
+            if old[s] == 0:
+                if new[s] == 0:
+                    return 0
+                return float("inf")
+            return abs((old[s] - new[s]) / old[s])
+        if all((difference(_v, c, s) < error for s in S)):
             break
         c = _v
     print(f"{prop.name}={_v[prop.model.trans[prop.model.old.network.get_initial_state()]]}")
