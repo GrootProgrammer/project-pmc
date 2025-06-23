@@ -95,7 +95,7 @@ if __name__ == "__main__":
         print(f"Check Modest model: {args.algorithm}")
         if args.algorithm == Algorithm.VALUE_ITERATION:
             from value_iteration import value_iteration
-            value_iteration(mmodel)
+            value_iteration(mmodel, args.max_iterations, args.precision)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
         print("-"*20)
