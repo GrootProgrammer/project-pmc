@@ -68,6 +68,133 @@ def test():
         #         "ExpUtil": "4.028044505410761"
         #     }
         # },
+        "echoring": {
+            "args": {
+                "ITERATIONS": "2"
+            },
+            "results": {
+                "MinFailed": "2.9528259735546e-7",
+                "MinOffline1": "2.4103690055658e-7",
+                "MaxOffline1": "2.4103690055658e-7",
+                "MinOffline2": "2.785589832249e-8",
+                "MaxOffline2": "2.785589832249e-8",
+                "MinOffline3": "2.638979847639e-8",
+                "MaxOffline3": "2.638979847639e-8",
+            }
+        },
+        "elevators": {
+            "args": {
+                "variant": "a",
+                "p": "3",
+                "c": "3"
+            },
+            "results": {
+                "goal": "1"
+            }
+        },
+        "exploding-blocksworld": {
+            "args": {
+                "N": "5",
+            },
+            "results": {
+                "goal": "0.9"
+            }
+        },
+        "firewire": {
+            "args": {
+                "explicit_timer": "false",
+                "delay": "3",
+                "deadline": "200"
+            },
+            "results": {
+                "elected": "1.0",
+                "time_max": "299",
+                "time_min": "138.25",
+                "time_sending": "18",
+                "deadline": "0.5"
+            }
+        },
+        "firewire_abst": {
+            "args": {
+                "delay": "36",
+            },
+            "results": {
+                "deadline": "1.0",
+                "rounds": "1.0",
+                "time_max": "365",
+                "time_min": "102.25"
+            }
+        },
+        "firewire_dl": {
+            "args": {
+                "delay": "3",
+                "deadline": "200"
+            },
+            "results": {
+                "deadline": "0.5"
+            }
+        },
+        "ij": {
+            "args": {
+                "num_tokens_var": "10"
+            },
+            "results": {
+                "stable": "1"
+            }
+        },
+        "pacman": {
+            "args": {
+                "MAXSTEPS": "5"
+            },
+            "results": {
+                "eat": "0.5511"
+            }
+        },
+        "philosophers-mdp": {
+            "args": {
+                "N": "3"
+            },
+            "results": {
+                "eat": "1"
+            }
+        },
+        "pnueli-zuck": {
+            "args": {
+                "N": "3"
+            },
+            "results": {
+                "live": "1"
+            }
+        },
+        "rabin": {
+            "args": {
+                "N": "3"
+            },
+            "results": {
+                "goal": "1"
+            }
+        },
+        "rectangle-tireworld": {
+            "args": {
+                "xy": "5"
+            },
+            "results": {
+                "goal": "1"
+            }
+        },
+        # NOTE: this model fails parsing by modest
+        # "resource-gathering": {
+        #     "args": {
+        #         "B": "200",
+        #         "GOLD_TO_COLLECT": "15",
+        #         "GEM_TO_COLLECT": "15"
+        #     },
+        #     "results": {
+        #         "expgold": "22.07144159280847",
+        #         "expsteps": "193.88888888888889",
+        #         "prgoldgem":"0.8080456033115208"
+        #     }
+        # },
         "tireworld": {
             "args": {
                 "n": "17"
@@ -146,10 +273,7 @@ def test():
 
     output_info = {}
 
-    for k, v in info.items():
-        output_info[k] = {}
-        print(f"testing {k}", flush=True)
-
+    def download_model(k, v):
         if not os.path.exists(f"test-files/{k}.py"):
             args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
             cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"test-files/{k}.py"]
@@ -157,7 +281,15 @@ def test():
             output = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
             for line in output.stdout.splitlines():
                 print("\t" + line)
-        
+            for line in output.stderr.splitlines():
+                print("\t" + line)
+
+    for k, v in info.items():
+        download_model(k, v)
+
+    for k, v in info.items():
+        output_info[k] = {}
+        print(f"testing {k}", flush=True)
         print("\tanswer:")
         output_info[k]["exact"] = {}
         for result in v["results"]:
@@ -177,6 +309,8 @@ def test():
             if output.returncode != 0:
                 print(f"\t\terror running {cmd}:")
                 for line in output.stdout.splitlines():
+                    print("\t\t\t" + line)
+                for line in output.stderr.splitlines():
                     print("\t\t\t" + line)
                 exit(1)
             for result in v["results"]:
