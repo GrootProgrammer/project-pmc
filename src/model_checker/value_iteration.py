@@ -64,8 +64,8 @@ def value_iteration_thread(prop):
         
         _v = bellman_update(c)
         def difference(new, old, s):
-            if new[s] == 0:
-                if old[s] == 0:
+            if old[s] == 0:
+                if new[s] == 0:
                     return 0
                 return float("inf")
             return abs((old[s] - new[s]) / old[s])
