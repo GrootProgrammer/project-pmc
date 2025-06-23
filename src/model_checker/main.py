@@ -46,6 +46,11 @@ if __name__ == "__main__":
     check_parser.add_argument("--algorithm", type=Algorithm,
                             choices=list(Algorithm), default=Algorithm.VALUE_ITERATION.value,
                             help="Verification algorithm to use")
+
+    value_iteration_options = check_parser.add_argument_group("Value Iteration Options")
+    value_iteration_options.add_argument("--max-iterations", type=int, default=sys.maxsize,
+                            help="Maximum number of iterations for value iteration")
+    
     
     # Numerical parameters
     check_parser.add_argument("--precision", type=float, default=1e-6,
