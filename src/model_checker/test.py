@@ -1,6 +1,9 @@
+import re
 import sys
 import os
 import subprocess
+
+from program import PropertyResult
 
 def test():
     info = {
@@ -57,17 +60,16 @@ def test():
                 "time_min": "66.99932286267479"
             }
         },
-        # TODO: fix eajs
-        # "eajs": {
-        #     "args": {
-        #         "N": "2",
-        #         "energy_capacity": "100",
-        #         "B": "5"
-        #     },
-        #     "results": {
-        #         "ExpUtil": "4.028044505410761"
-        #     }
-        # },
+        "eajs": {
+            "args": {
+                "N": "2",
+                "energy_capacity": "100",
+                "B": "5"
+            },
+            "results": {
+                "ExpUtil": "4.028044505410761"
+            }
+        },
         "echoring": {
             "args": {
                 "ITERATIONS": "2"
@@ -260,7 +262,7 @@ def test():
                 "N": "1000",
                 "K": "1",
                 "reset": "true",
-                "deadline": 10
+                "deadline": "10"
             },
             "results": {
                 "deadline_max": "0.015378937007874016",
@@ -299,9 +301,9 @@ def test():
         for algorithm in algorithms:
             output_info[k][algorithm] = {}
             print(f"\t{algorithm}:")
-            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--algorithm", algorithm]
+            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
             try:
-                output = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                output = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
             except subprocess.TimeoutExpired:
                 print(f"\t\ttimeout running {cmd}")
                 for result in v["results"]:
@@ -314,19 +316,12 @@ def test():
                 for line in output.stderr.splitlines():
                     print("\t\t\t" + line)
                 exit(1)
+            import json
+            results = json.loads(output.stdout)
+            results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
+            output_info[k][algorithm] = results
             for result in v["results"]:
-                def get_result(result):
-                    line = get_line_with_result(output.stdout, result)
-                    if line is None:
-                        return "failed"
-                    try:
-                        parsed_line = parse_line(line)
-                        return parsed_line
-                    except:
-                        return "parse error"
-                res = get_result(result)
-                print(f"\t\t{result}: {res}")
-                output_info[k][algorithm][result] = res
+                print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
     
     print(output_info)
     success = True
@@ -345,14 +340,6 @@ def test():
                     success = False
     if not success:
         exit(1)
-
-def get_line_with_result(output, result):
-    for line in output.split("\n"):
-        if result in line:
-            return line
-
-def parse_line(line):
-    return line.split("=")[1]
 
 if __name__ == "__main__":
     test()

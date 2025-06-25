@@ -26,19 +26,22 @@ class Property:
         self.reward_cache = {}
         self.safe_cache = {}
 
+    def get_initial_state(self):
+        return self.model.get_initial_state()
+
     def get_goal_value(self, s):
         if s not in self.goal_cache:
             self.goal_cache[s] = self.model.get_goal_value(s, self.goal_exp)
         return self.goal_cache[s]
 
     def is_safe(self, s):
-        if self.safe_exp is None:
-            if self.is_reward:
-                if self.exp.op.endswith("_s"):
-                    return not self.get_goal_value(s)
-            return True
         if s not in self.safe_cache:
-            self.safe_cache[s] = self.model.is_safe(s, self.safe_exp)
+            if self.safe_exp is None:
+                if self.is_reward:
+                    if self.exp.op.endswith("_s"):
+                        self.safe_cache[s] = not self.get_goal_value(s)
+            if s not in self.safe_cache:
+                self.safe_cache[s] = self.model.is_safe(s, self.safe_exp)
         return self.safe_cache[s]
 
     def get_reward(self, s, a, s_prime):

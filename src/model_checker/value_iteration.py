@@ -5,29 +5,27 @@
 
 import threading     
 import sys
+import time
 from property import Property
 from explored_model import Model
+from program import PropertyResult, PropertyResultType
 
-def value_iteration(mmodel):
+def value_iteration(mmodel, max_iterations, precision):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
-    print(len(opt_model.opt['states']))
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
     properties = [p for p in properties if p.is_valid]
-    threads = []
-    # lets multithread if it is allowed
-    if not hasattr(sys, "is_gil_enabled") or not sys.is_gil_enabled():
-        for prop in properties:
-            value_iteration_thread(prop)
-    else:
-        for prop in properties:
-            thread = threading.Thread(target=value_iteration_thread, args=(prop,))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
+    
+    results = {}
+    for prop in properties:
+        timer = time.time()
+        try:
+            results[prop.name] = value_iteration_thread(prop, timer, max_iterations, precision)
+        except Exception as e:
+            results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
+    return results
 
-def value_iteration_thread(prop):
+def value_iteration_thread(prop, timer, max_iterations, precision):
     # all states
     S = prop.get_states()
     # all states that satisfy the goal
@@ -39,10 +37,6 @@ def value_iteration_thread(prop):
 
     # setting this to 1 for G in the case of reachability properties saves just 1 cycle so -\_(-_-)_/
     c = {s: 0 for s in S}
-
-     # these should be parameters
-    max_iterations = sys.maxsize
-    error = 1e-6
 
     # actual value iteration here:
     for iteration in range(max_iterations):
@@ -57,7 +51,7 @@ def value_iteration_thread(prop):
                     continue
                 argmax = []
                 for a in prop.get_actions(s):
-                    a_sum = sum([prop.get_transition_prob(s, a, s_prime) * (v[s_prime] + prop.get_reward(s,a,s_prime)) for s_prime in prop.get_next_states(s, a)])
+                    a_sum = sum([(prop.get_transition_prob(s, a, s_prime) * v[s_prime]) + prop.get_reward(s,a,s_prime) for s_prime in prop.get_next_states(s, a)])
                     argmax.append(a_sum)
                 _v[s] = prop.get_operation()(argmax)
             return _v
@@ -69,8 +63,8 @@ def value_iteration_thread(prop):
                     return 0
                 return float("inf")
             return abs((old[s] - new[s]) / old[s])
-        if all((difference(_v, c, s) < error for s in S)):
+        if all((difference(_v, c, s) < precision for s in S)):
+            c = _v
             break
         c = _v
-    print(f"{prop.name}={_v[prop.model.trans[prop.model.old.network.get_initial_state()]]}")
-    return
+    return PropertyResult(PropertyResultType.FLOAT, c[prop.get_initial_state()], time.time() - timer)

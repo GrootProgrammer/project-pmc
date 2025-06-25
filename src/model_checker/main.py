@@ -1,11 +1,17 @@
 #!/bin/python
 
 import argparse
+import json
+import sys
 from utils import *
 from errors import *
 from program import *
 
 from importlib import util
+
+def cond_print(b, b_, s):
+    if b == b_:
+        print(s)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Probabilistic Model Checker for MDPs")
@@ -46,6 +52,14 @@ if __name__ == "__main__":
     check_parser.add_argument("--algorithm", type=Algorithm,
                             choices=list(Algorithm), default=Algorithm.VALUE_ITERATION.value,
                             help="Verification algorithm to use")
+
+    check_parser.add_argument("--json-output", action="store_true",
+                            help="Output results in JSON format")
+
+    value_iteration_options = check_parser.add_argument_group("Value Iteration Options")
+    value_iteration_options.add_argument("--max-iterations", type=int, default=sys.maxsize,
+                            help="Maximum number of iterations for value iteration")
+    
     
     # Numerical parameters
     check_parser.add_argument("--precision", type=float, default=1e-6,
@@ -60,9 +74,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print("-"*20)
-    print("Load Modest model")
-    print("-"*20)
+    cond_print(args.json_output, False, "Load Modest model")
+    cond_print(args.json_output, False, "-"*20)
     if args.modest_model:
         convert_modest_to_python(args.modest_model, args.modest)
 
@@ -78,27 +91,31 @@ if __name__ == "__main__":
     # mmodel.info()
 
     if args.command == "explore":
-        print("-"*20)
-        print(f"Explore Modest model: {args.mode}")
-        print("-"*20)
+        cond_print(args.json_output, False, "-"*20)
+        cond_print(args.json_output, False, f"Explore Modest model: {args.mode}")
+        cond_print(args.json_output, False, "-"*20)
         path=mmodel.explore(args.mode, args.max)
         for p in path:
             print(str(p))
     elif args.command == "check":
-        print("-"*20)
-        print(f"Check Modest model: {args.algorithm}")
+        cond_print(args.json_output, False, "-"*20)
+        cond_print(args.json_output, False, f"Check Modest model: {args.algorithm}")
         if args.algorithm == Algorithm.VALUE_ITERATION:
             from value_iteration import value_iteration
-            value_iteration(mmodel)
+            results = value_iteration(mmodel, args.max_iterations, args.precision)
         elif args.algorithm == Algorithm.SMT_EXACT:
             from smt import smt
-            smt(mmodel)
+            results = smt(mmodel)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
-        print("-"*20)
 
-    print("-"*20)
-    print("Clean up")
+        cond_print(args.json_output, True, json.dumps({prop: result.to_dict() for prop, result in results.items()}, indent=4))
+        for prop, result in results.items():
+           cond_print(args.json_output, False, f"{prop}={result.result} (time: {result.time:.2f}s)")
+        cond_print(args.json_output, False, "-"*20)
+
+    cond_print(args.json_output, False, "-"*20)
+    cond_print(args.json_output, False, "Clean up")
     if args.modest_model:
         cleanup()
-    print("-"*20)
+    cond_print(args.json_output, False, "-"*20)

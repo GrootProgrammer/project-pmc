@@ -28,7 +28,8 @@ class Model:
                         new_states.put(jmp)
             
             end_time = time.time()
-            print(f"Breadth first search took {end_time - start_time} seconds")
+            
+            # print(f"Breadth first search took {end_time - start_time} seconds")
 
             return (new_model, initial_state)
 
@@ -98,6 +99,8 @@ class Model:
         return self.old.network.get_expression_value(self.rev[s], g_exp)
 
     def is_safe(self, s, safe_exp):
+        if safe_exp is None:
+            return True
         return self.old.network.get_expression_value(self.rev[s], safe_exp)
 
     def get_reward(self, s, a, s_prime, reward_exp):

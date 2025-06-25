@@ -7,27 +7,24 @@ import threading
 import sys
 from explored_model import Model
 from property import Property
+from program import PropertyResult, PropertyResultType
+import time
 
 def smt(mmodel):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
-    print(len(opt_model.opt['states']))
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
     properties = [p for p in properties if p.is_valid]
-    threads = []
-    # lets multithread if it is allowed
-    if not hasattr(sys, "is_gil_enabled") or not sys.is_gil_enabled():
-        for prop in properties:
-            smt_thread(prop)
-    else:
-        for prop in properties:
-            thread = threading.Thread(target=smt_thread, args=(prop,))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
+    results = {}
+    for prop in properties:
+        timer = time.time()
+        try:
+            results[prop.name] = smt_thread(prop, timer)
+        except Exception as e:
+            results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
+    return results
 
-def smt_thread(prop):
+def smt_thread(prop, timer):
     # all states
     S = prop.get_states()
     # all states that satisfy the goal
@@ -89,13 +86,11 @@ def smt_thread(prop):
             solver.add(states[s] >= 0)
             solver.add(states[s] <= 1)
 
-    print("start proving")
     solver.set("timeout", 10000)
     has_solved = solver.check()
     if has_solved != z3.sat:
-        print(f"no solution found for {prop.name}")
-        return
+        return PropertyResult(PropertyResultType.TIMEOUT, None, time.time() - timer)
     model = solver.model()
-    solution = model.eval(states[prop.model.trans[prop.model.old.network.get_initial_state()]])
-    print(f"{prop.name}={float(solution.as_fraction())}")
-    return
+    solution = model.eval(states[prop.get_initial_state()])
+
+    return PropertyResult(PropertyResultType.FLOAT, float(solution.as_fraction()), time.time() - timer)
