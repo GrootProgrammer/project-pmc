@@ -26,6 +26,9 @@ class Property:
         self.reward_cache = {}
         self.safe_cache = {}
 
+    def get_initial_state(self):
+        return self.model.get_initial_state()
+
     def get_goal_value(self, s):
         if s not in self.goal_cache:
             self.goal_cache[s] = self.model.get_goal_value(s, self.goal_exp)

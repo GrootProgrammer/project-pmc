@@ -28,7 +28,8 @@ class Model:
                         new_states.put(jmp)
             
             end_time = time.time()
-            print(f"Breadth first search took {end_time - start_time} seconds")
+            
+            # print(f"Breadth first search took {end_time - start_time} seconds")
 
             return (new_model, initial_state)
 

@@ -5,29 +5,27 @@
 
 import threading     
 import sys
+import time
 from property import Property
 from explored_model import Model
+from program import PropertyResult, PropertyResultType
 
 def value_iteration(mmodel, max_iterations, precision):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
-    print(len(opt_model.opt['states']))
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
     properties = [p for p in properties if p.is_valid]
-    threads = []
-    # lets multithread if it is allowed
-    if not hasattr(sys, "is_gil_enabled") or not sys.is_gil_enabled():
-        for prop in properties:
-            value_iteration_thread(prop, max_iterations, precision)
-    else:
-        for prop in properties:
-            thread = threading.Thread(target=value_iteration_thread, args=(prop, max_iterations, precision))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
+    
+    results = {}
+    for prop in properties:
+        timer = time.time()
+        try:
+            results[prop.name] = value_iteration_thread(prop, timer, max_iterations, precision)
+        except Exception as e:
+            results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
+    return results
 
-def value_iteration_thread(prop, max_iterations, precision):
+def value_iteration_thread(prop, timer, max_iterations, precision):
     # all states
     S = prop.get_states()
     # all states that satisfy the goal
@@ -66,7 +64,7 @@ def value_iteration_thread(prop, max_iterations, precision):
                 return float("inf")
             return abs((old[s] - new[s]) / old[s])
         if all((difference(_v, c, s) < precision for s in S)):
+            c = _v
             break
         c = _v
-    print(f"{prop.name}={_v[prop.model.trans[prop.model.old.network.get_initial_state()]]}")
-    return
+    return PropertyResult(PropertyResultType.FLOAT, c[prop.get_initial_state()], time.time() - timer)
