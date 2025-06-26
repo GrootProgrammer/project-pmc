@@ -303,7 +303,7 @@ def test():
             print(f"\t{algorithm}:")
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
             try:
-                output = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+                output = subprocess.run(cmd, capture_output=True, text=True, timeout=3600/(len(v["results"])*len(algorithms)))
             except subprocess.TimeoutExpired:
                 print(f"\t\ttimeout running {cmd}")
                 for result in v["results"]:
