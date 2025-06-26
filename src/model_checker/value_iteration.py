@@ -13,10 +13,10 @@ from program import PropertyResult, PropertyResultType
 def value_iteration(mmodel, max_iterations, precision):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
-    properties = [Property(opt_model, p) for p in mmodel.network.properties]
-    properties = [p for p in properties if p.is_valid]
+    properties_ = [Property(opt_model, p) for p in mmodel.network.properties]
+    properties = [p for p in properties_ if p.is_valid]
     
-    results = {}
+    results = {p.name: PropertyResult(PropertyResultType.NOT_SUPPORTED, None, 0) for p in properties_ if not p.is_valid}
     for prop in properties:
         timer = time.time()
         try:
