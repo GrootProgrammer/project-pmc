@@ -56,4 +56,4 @@ class PropertyResult():
         raise ValueError(f"Invalid result type: {self.result_type}")
 
     def __repr__(self):
-        return str(self.to_dict())
+        return self.to_dict().__repr__()
