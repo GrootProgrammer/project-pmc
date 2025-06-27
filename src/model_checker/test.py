@@ -338,7 +338,7 @@ def test():
                     continue
                 result_value = float(result_value_str)
                 exact_value = float(v["exact"][result])
-                if abs(1 - (result_value / exact_value)) > 0.01:
+                if abs(exact_value - result_value) > 0.00001:
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
                     success = False
     if not success:
