@@ -3,13 +3,18 @@
 #   script:
 #     - nix develop --extra-experimental-features nix-command --extra-experimental-features flakes --command ./test.sh
 
-run_test_program_python:
+run_test_program_python_quick:
   parallel:
     matrix:
       - algorithms: "vi"
       - algorithms: "pi"
-  # lock so that the ci not times out if multiple branches run jobs in parallel
   resource_group: $algorithms
   image: python
   script:
-    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 60
+    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 10
+
+run_test_program_python_full:
+  resource_group: full
+  image: python
+  script:
+    - python src/model_checker/test.py --modest-path "modest" --algorithms vi --timeout 1800 --parallel
