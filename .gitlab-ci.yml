@@ -9,7 +9,7 @@ run_test_program_python:
       - algorithms: "vi"
       - algorithms: "pi"
   # lock so that the ci not times out if multiple branches run jobs in parallel
-  resource_group: lock
+  resource_group: $algorithms
   image: python
   script:
     - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 60
