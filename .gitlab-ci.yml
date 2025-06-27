@@ -4,6 +4,8 @@
 #     - nix develop --extra-experimental-features nix-command --extra-experimental-features flakes --command ./test.sh
 
 run_test_program_python:
+  # lock so that the ci not times out if multiple branches run jobs in parallel
+  resource_group: lock
   image: python
   script:
     - pip install -r requirements.txt
