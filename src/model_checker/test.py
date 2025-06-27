@@ -3,7 +3,7 @@ import sys
 import os
 import subprocess
 
-from program import PropertyResult
+from program import PropertyResult, PropertyResultType
 
 def test():
     info = {
