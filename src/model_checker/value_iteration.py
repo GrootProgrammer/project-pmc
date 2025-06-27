@@ -41,6 +41,7 @@ def value_iteration_thread(prop, timer, max_iterations, precision):
     # actual value iteration here:
     for iteration in range(max_iterations):
         def bellman_update(v):
+            delta = 0
             _v = {}
             for s in v:
                 if s in G:
@@ -54,17 +55,10 @@ def value_iteration_thread(prop, timer, max_iterations, precision):
                     a_sum = sum([(prop.get_transition_prob(s, a, s_prime) * v[s_prime]) + prop.get_reward(s,a,s_prime) for s_prime in prop.get_next_states(s, a)])
                     argmax.append(a_sum)
                 _v[s] = prop.get_operation()(argmax)
-            return _v
+                delta = max(delta, abs(_v[s] - v[s]))
+            return _v, delta
         
-        _v = bellman_update(c)
-        def difference(new, old, s):
-            if old[s] == 0:
-                if new[s] == 0:
-                    return 0
-                return float("inf")
-            return abs((old[s] - new[s]) / old[s])
-        if all((difference(_v, c, s) < precision for s in S)):
-            c = _v
+        c, change = bellman_update(c)
+        if change < precision:
             break
-        c = _v
     return PropertyResult(PropertyResultType.FLOAT, c[prop.get_initial_state()], time.time() - timer)
