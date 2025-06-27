@@ -234,7 +234,7 @@ def test():
                 "deadline": "80",
             },
             "results": {
-                "goal": "0.81640625"
+                "deadline": "0.81640625"
             }
         },
         "zenotravel": {
