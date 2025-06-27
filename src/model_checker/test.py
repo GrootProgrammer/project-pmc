@@ -277,6 +277,7 @@ def test():
     parser.add_argument("--modest-path", type=str, default="modest")
     parser.add_argument("--algorithms", type=str, default="vi,smt")
     parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument("--parallel", action="store_true")
     args = parser.parse_args()
 
     output_info = {}
@@ -295,42 +296,73 @@ def test():
     for k, v in info.items():
         download_model(k, v)
 
-    for k, v in info.items():
-        output_info[k] = {}
-        print(f"testing {k}", flush=True)
-        print("\tanswer:")
-        output_info[k]["exact"] = {}
-        for result in v["results"]:
-            print(f"\t\t{result}: {v['results'][result]}")
-            output_info[k]["exact"][result] = v["results"][result]
-        for algorithm in args.algorithms.split(","):
-            output_info[k][algorithm] = {}
-            print(f"\t{algorithm}:")
-            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
-            try:
-                output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
-            except subprocess.TimeoutExpired:
-                print(f"\t\ttimeout running {cmd}")
-                for result in v["results"]:
-                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.TIMEOUT, None, 600)
-                continue
-            if output.returncode != 0:
-                print(f"\t\terror running {cmd}:")
-                for line in output.stdout.splitlines():
-                    print("\t\t\t" + line)
-                for line in output.stderr.splitlines():
-                    print("\t\t\t" + line)
-                exit(1)
-            import json
-            results = json.loads(output.stdout)
-            results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
-            output_info[k][algorithm] = results
+    def run_model(k,v,algorithm):
+        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
+        try:
+            output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
+        except subprocess.TimeoutExpired:
+            print(f"\t\ttimeout running {cmd}")
             for result in v["results"]:
-                if result not in output_info[k][algorithm]:
-                    # this happens if modest does not support the property
-                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.NOT_SUPPORTED, None, 0)
-                print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
+                output_info[k][algorithm][result] = PropertyResult(PropertyResultType.TIMEOUT, None, args.timeout)
+            return
+        if output.returncode != 0:
+            print(f"\t\terror running {cmd}:")
+            for line in output.stdout.splitlines():
+                print("\t\t\t" + line)
+            for line in output.stderr.splitlines():
+                print("\t\t\t" + line)
+            exit(1)
+        import json
+        results = json.loads(output.stdout)
+        results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
+        output_info[k][algorithm] = results
+
+    def run_models():
+        if args.parallel:
+            threads = {}
+        for k, v in info.items():
+            output_info[k] = {}
+            if args.parallel:
+                import threading
+                for algorithm in args.algorithms.split(","):
+                    output_info[k][algorithm] = {}
+                    threads[k] = (threading.Thread(target=run_model, args=(k,v,algorithm)))
+                    threads[k].start()
+            else:
+                print(f"testing {k}", flush=True)
+                print("\tanswer:")
+                output_info[k]["exact"] = {}
+                for result in v["results"]:
+                    print(f"\t\t{result}: {v['results'][result]}")
+                    output_info[k]["exact"][result] = v["results"][result]
+                for algorithm in args.algorithms.split(","):
+                    output_info[k][algorithm] = {}
+                    print(f"\t{algorithm}:")
+                    run_model(k,v,algorithm)
+                    for result in v["results"]:
+                        if result not in output_info[k][algorithm]:
+                            # this happens if modest does not support the property
+                            output_info[k][algorithm][result] = PropertyResult(PropertyResultType.NOT_SUPPORTED, None, 0)
+                        print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
     
+        if args.parallel:
+            for k, v in info.items():
+                threads[k].join()
+                print(f"testing {k}", flush=True)
+                print("\tanswer:")
+                output_info[k]["exact"] = {}
+                for result in v["results"]:
+                    print(f"\t\t{result}: {v['results'][result]}")
+                    output_info[k]["exact"][result] = v["results"][result]
+                for algorithm in args.algorithms.split(","):
+                    print(f"\t{algorithm}:")
+                    for result in v["results"]:
+                        if result not in output_info[k][algorithm]:
+                            # this happens if modest does not support the property
+                            output_info[k][algorithm][result] = PropertyResult(PropertyResultType.NOT_SUPPORTED, None, 0)
+                        print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
+
+    run_models()
     print(output_info)
     success = True
     for k, v in output_info.items():
