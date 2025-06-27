@@ -150,7 +150,7 @@ def test():
                 "MAXSTEPS": "5"
             },
             "results": {
-                "eat": "0.5511"
+                "crash": "0.5511"
             }
         },
         "philosophers-mdp": {
@@ -174,7 +174,7 @@ def test():
                 "N": "3"
             },
             "results": {
-                "goal": "1"
+                "live": "1"
             }
         },
         "rectangle-tireworld": {
@@ -307,7 +307,7 @@ def test():
             except subprocess.TimeoutExpired:
                 print(f"\t\ttimeout running {cmd}")
                 for result in v["results"]:
-                    output_info[k][algorithm][result] = "timeout"
+                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.TIMEOUT, None, 600)
                 continue
             if output.returncode != 0:
                 print(f"\t\terror running {cmd}:")
