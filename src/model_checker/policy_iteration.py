@@ -19,11 +19,10 @@ def policy_iteration(mmodel, max_iterations, precision):
     results = {p.name: PropertyResult(PropertyResultType.NOT_SUPPORTED, None, 0) for p in properties_ if not p.is_valid}
     for prop in properties:
         timer = time.time()
-        #try:
-        results[prop.name] = policy_iteration_thread(prop, timer, max_iterations, precision)
-        #except Exception as e:
-        #    print(e)
-        #    results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
+        try:
+            results[prop.name] = policy_iteration_thread(prop, timer, max_iterations, precision)
+        except Exception as e:
+                results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
     return results
 
 def policy_iteration_thread(prop, timer, max_iterations, precision):
