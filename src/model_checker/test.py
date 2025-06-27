@@ -1,7 +1,8 @@
-import re
 import sys
 import os
 import subprocess
+
+import argparse
 
 from program import PropertyResult, PropertyResultType
 
@@ -272,15 +273,18 @@ def test():
         }
     }
 
-    modest_path = sys.argv[1]
-    algorithms = ["vi","smt"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--modest-path", type=str, default="modest")
+    parser.add_argument("--algorithms", type=str, default="vi")
+    parser.add_argument("--timeout", type=int, default=600)
+    args = parser.parse_args()
 
     output_info = {}
 
     def download_model(k, v):
         if not os.path.exists(f"test-files/{k}.py"):
             args_text = ",".join([f"{k}={v}" for k, v in v["args"].items()])
-            cmd = [modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"test-files/{k}.py"]
+            cmd = [args.modest_path, "export-to-python", "qcomp://" + k, "-E", args_text, "--output", f"test-files/{k}.py"]
             env = os.environ.copy()
             output = subprocess.run(cmd, capture_output=True, text=True, check=True,env=env)
             for line in output.stdout.splitlines():
@@ -299,12 +303,12 @@ def test():
         for result in v["results"]:
             print(f"\t\t{result}: {v['results'][result]}")
             output_info[k]["exact"][result] = v["results"][result]
-        for algorithm in algorithms:
+        for algorithm in args.algorithms.split(","):
             output_info[k][algorithm] = {}
             print(f"\t{algorithm}:")
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
             try:
-                output = subprocess.run(cmd, capture_output=True, text=True, timeout=1800/(len(v["results"])*len(algorithms)))
+                output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
             except subprocess.TimeoutExpired:
                 print(f"\t\ttimeout running {cmd}")
                 for result in v["results"]:
