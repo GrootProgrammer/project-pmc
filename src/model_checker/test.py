@@ -339,6 +339,10 @@ def test():
                 continue
             for result in v[algorithm]:
                 result_value = v[algorithm][result]
+                if result_value.result_type == PropertyResultType.ERROR:
+                    print(f"error on {k} with {algorithm} with property {result}")
+                    success = False
+                    continue
                 if result_value.result_type != PropertyResultType.FLOAT:
                     continue
                 result_value = result_value.result
