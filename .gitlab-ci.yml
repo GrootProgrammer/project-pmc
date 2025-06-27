@@ -7,11 +7,13 @@ run_test_program_python_quick:
   parallel:
     matrix:
       - algorithms: "vi"
+  lock: $algorithms
   image: python
   script:
     - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 10
 
 run_test_program_python_full:
+  lock: full
   image: python
   script:
     - python src/model_checker/test.py --modest-path "modest" --algorithms vi --timeout 1800 --parallel
