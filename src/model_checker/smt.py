@@ -73,18 +73,17 @@ def smt_thread(prop, timer):
         else:
             argmax = []
             for a in prop.get_actions(s):
-                a_sum = sum([prop.get_transition_prob(s, a, s_prime) * (states[s_prime] + prop.get_reward(s,a,s_prime)) for s_prime in prop.get_next_states(s, a)])
+                a_sum = sum([(prop.get_transition_prob(s, a, s_prime) * states[s_prime]) + prop.get_reward(s,a,s_prime) for s_prime in prop.get_next_states(s, a)])
                 argmax.append(a_sum)
             if prop.is_min():
                 solver.add(states[s] == z3min(argmax))
             else:
                 solver.add(states[s] == z3max(argmax))
-
     
-    if prop.is_probability:
+    if prop.is_probability or prop.is_reachability:
         for s in S:
-            solver.add(states[s] >= 0)
-            solver.add(states[s] <= 1)
+            solver.add(states[s] >= 0.0)
+            solver.add(states[s] <= 1.0)
 
     solver.set("timeout", 10000)
     has_solved = solver.check()
