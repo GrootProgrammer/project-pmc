@@ -275,7 +275,7 @@ def test():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--modest-path", type=str, default="modest")
-    parser.add_argument("--algorithms", type=str, default="vi")
+    parser.add_argument("--algorithms", type=str, default="vi,smt")
     parser.add_argument("--timeout", type=int, default=600)
     args = parser.parse_args()
 
