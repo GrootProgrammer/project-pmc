@@ -67,15 +67,8 @@ def policy_iteration_thread(prop, timer, max_iterations, precision):
             if b is None:
                 continue
             
-            argmax = b
-            max_R = -float("inf") if prop.is_max else float("inf")
-            for a in prop.get_actions(s):
-                R = 0
-                for s_prime in prop.get_next_states(s, a):
-                    R += prop.get_transition_prob(s, a, s_prime) * (prop.get_reward(s, a, s_prime) + V[s_prime])
-                if prop.get_operation()([R, max_R]) == R:
-                    max_R = R
-                    argmax = a
+            argmax = prop.get_operation()(prop.get_actions(s), key=lambda a: sum(prop.get_transition_prob(s, a, s_) * V[s_] + prop.get_reward(s, a, s_) for s_ in prop.get_next_states(s, a)))
+
             if argmax != b:
                 policy_stable = False
             pic[s] = argmax
