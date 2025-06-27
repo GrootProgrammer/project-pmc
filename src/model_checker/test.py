@@ -321,6 +321,9 @@ def test():
             results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
             output_info[k][algorithm] = results
             for result in v["results"]:
+                if result not in output_info[k][algorithm]:
+                    # this happens if modest does not support the property
+                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.NOT_SUPPORTED, None, 0)
                 print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
     
     print(output_info)
