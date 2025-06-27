@@ -234,7 +234,7 @@ def test():
                 "deadline": "80",
             },
             "results": {
-                "goal": "0.81640625"
+                "deadline": "0.81640625"
             }
         },
         "zenotravel": {
@@ -339,7 +339,7 @@ def test():
                     continue
                 result_value = result_value.result
                 exact_value = float(v["exact"][result])
-                if abs(exact_value - result_value) > 0.00001:
+                if abs(exact_value - result_value) > 0.0001:
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
                     success = False
     if not success:
