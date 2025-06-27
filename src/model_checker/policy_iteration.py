@@ -48,11 +48,8 @@ def policy_iteration_thread(prop, timer, max_iterations, precision):
                 if s in S0:
                     _v[s] = 0
                     continue
-                v_ = 0
-                action = pi[s]
-                for s_prime in prop.get_next_states(s, action):
-                    v_ += prop.get_transition_prob(s, action, s_prime) * (prop.get_reward(s, action, s_prime) + Vcc[s_prime])
-                _v[s] = v_
+                a = pi[s]
+                _v[s] = sum(prop.get_transition_prob(s, a, s_) * Vcc[s_] + prop.get_reward(s, a, s_) for s_ in prop.get_next_states(s, a))
             delta = max([abs(_v[s] - Vcc[s]) for s in S])
             
             return delta, _v
