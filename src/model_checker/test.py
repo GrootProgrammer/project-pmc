@@ -298,7 +298,7 @@ def test():
         for result in v["results"]:
             print(f"\t\t{result}: {v['results'][result]}")
             output_info[k]["exact"][result] = v["results"][result]
-        for algorithm in ["vi"]:
+        for algorithm in ["vi", "pi"]:
             output_info[k][algorithm] = {}
             print(f"\t{algorithm}:")
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
@@ -333,10 +333,10 @@ def test():
             if algorithm == "exact":
                 continue
             for result in v[algorithm]:
-                result_value_str = v[algorithm][result]
-                if result_value_str == "failed" or result_value_str == "timeout" or result_value_str == "parse error":
+                result_value = v[algorithm][result]
+                if result_value.result_type != PropertyResultType.FLOAT:
                     continue
-                result_value = float(result_value_str)
+                result_value = result_value.result
                 exact_value = float(v["exact"][result])
                 if abs(exact_value - result_value) > 0.00001:
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
