@@ -58,11 +58,12 @@ def value_iteration_thread(prop, timer, max_iterations, precision):
         
         _v = bellman_update(c)
         def difference(new, old, s):
-            if old[s] == 0:
-                if new[s] == 0:
-                    return 0
-                return float("inf")
-            return abs((old[s] - new[s]) / old[s])
+            # if old[s] == 0:
+            #     if new[s] == 0:
+            #         return 0
+            #     return float("inf")
+            # return abs((old[s] - new[s]) / old[s])
+            return abs(new[s] - old[s])
         if all((difference(_v, c, s) < precision for s in S)):
             c = _v
             break
