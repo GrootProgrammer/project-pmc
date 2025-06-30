@@ -1,0 +1,7 @@
+**/venv
+**/__pycache__
+src/model_checker/modest/**
+!src/model_checker/modest/note.txt
+Modest
+.direnv/
+output.txt
