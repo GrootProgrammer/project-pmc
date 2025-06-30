@@ -59,8 +59,10 @@ if __name__ == "__main__":
     value_iteration_options = check_parser.add_argument_group("Value Iteration Options")
     value_iteration_options.add_argument("--max-iterations", type=int, default=sys.maxsize,
                             help="Maximum number of iterations for value iteration")
-    
-    
+
+    smt_options = check_parser.add_argument_group("SMT Options")
+    smt_options.add_argument("--smt-timeout", type=int, default=10000,
+                            help="Timeout for SMT solver")
     # Numerical parameters
     check_parser.add_argument("--precision", type=float, default=1e-6,
                             help="Numerical convergence threshold")
@@ -105,7 +107,7 @@ if __name__ == "__main__":
             results = value_iteration(mmodel, args.max_iterations, args.precision)
         elif args.algorithm == Algorithm.SMT_EXACT:
             from smt import smt
-            results = smt(mmodel)
+            results = smt(mmodel, args.smt_timeout)
         elif args.algorithm == Algorithm.POLICY_ITERATION:
             from policy_iteration import policy_iteration
             results = policy_iteration(mmodel, args.max_iterations, args.precision)

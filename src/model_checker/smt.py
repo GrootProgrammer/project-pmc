@@ -10,7 +10,7 @@ from property import Property
 from program import PropertyResult, PropertyResultType
 import time
 
-def smt(mmodel):
+def smt(mmodel, smt_timeout):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
     properties = [Property(opt_model, p) for p in mmodel.network.properties]
@@ -19,12 +19,12 @@ def smt(mmodel):
     for prop in properties:
         timer = time.time()
         try:
-            results[prop.name] = smt_thread(prop, timer)
+            results[prop.name] = smt_thread(prop, timer, smt_timeout)
         except Exception as e:
             results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
     return results
 
-def smt_thread(prop, timer):
+def smt_thread(prop, timer, smt_timeout):
     # all states
     S = prop.get_states()
     # all states that satisfy the goal
@@ -85,7 +85,7 @@ def smt_thread(prop, timer):
             solver.add(states[s] >= 0.0)
             solver.add(states[s] <= 1.0)
 
-    solver.set("timeout", 100000)
+    solver.set("timeout", smt_timeout)
     has_solved = solver.check()
     if has_solved != z3.sat:
         return PropertyResult(PropertyResultType.TIMEOUT, None, time.time() - timer)
