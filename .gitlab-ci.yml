@@ -55,7 +55,8 @@ run_test_program_python_parallel:
       - results/**
 
 combine_results:
-  needs: run_test_program_python_parallel
+  needs: 
+    - run_test_program_python_parallel
   script:
     - python combine_results.py
   artifacts:
@@ -63,7 +64,8 @@ combine_results:
       - results/**
 
 graph_results:
-  needs: combine_results
+  needs: 
+    - combine_results
   script:
     - pip install matplotlib
     - python graph_results.py
