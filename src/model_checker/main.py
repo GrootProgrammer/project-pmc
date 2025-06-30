@@ -66,13 +66,6 @@ if __name__ == "__main__":
     # Numerical parameters
     check_parser.add_argument("--precision", type=float, default=1e-6,
                             help="Numerical convergence threshold")
-    
-    # Probability/reward bounds
-    bounds_group = check_parser.add_mutually_exclusive_group()
-    bounds_group.add_argument("--min", action="store_true",
-                            help="Compute minimum probability/reward")
-    bounds_group.add_argument("--max", action="store_true",
-                            help="Compute maximum probability/reward")
 
     args = parser.parse_args()
 
