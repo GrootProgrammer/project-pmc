@@ -324,6 +324,8 @@ def test():
         if args.parallel:
             threads = {}
         for k, v in info.items():
+            if args.only and k != args.only:
+                continue
             output_info[k] = {}
             if args.parallel:
                 import threading
