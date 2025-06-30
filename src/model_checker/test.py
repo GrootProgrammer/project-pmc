@@ -302,6 +302,8 @@ def test():
         download_model(k, v)
 
     def run_model(k,v,algorithm):
+        import time
+        timer = time.time()
         cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
         try:
             output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
