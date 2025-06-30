@@ -302,15 +302,14 @@ def test():
         download_model(k, v)
 
     def run_model(k,v,algorithm):
-        import time
-        timer = time.time()
-        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm, "--smt-timeout", str(int(args.timeout / len(v["results"])))]
+        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
         try:
             output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
             print(f"\t\ttimeout running {cmd}")
             for result in v["results"]:
                 output_info[k][algorithm][result] = PropertyResult(PropertyResultType.TIMEOUT, None, args.timeout)
+            output_info[k][algorithm]["total_time"] = args.timeout
             return
         if output.returncode != 0:
             print(f"\t\terror running {cmd}:")

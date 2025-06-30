@@ -34,7 +34,8 @@
             autoPatchelfHook
           ];
           buildInputs = with pkgs; [
-            python314
+            python312
+            python312Packages.matplotlib
           ];
           shellHook = ''
             export MODEST_PATH="${modest}/modest"
