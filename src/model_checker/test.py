@@ -375,7 +375,7 @@ def test():
                         print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
 
     run_models()
-    print(output_info)
+    # print(output_info)
     success = True
     for k, v in output_info.items():
         for algorithm in v:
@@ -396,7 +396,19 @@ def test():
         exit(1)
     if args.output:
         with open(args.output, "w") as f:
-            json.dump(output_info, f)
+            # Convert PropertyResult objects to dictionaries for JSON serialization
+            serializable_output = {}
+            for model_key, model_data in output_info.items():
+                serializable_output[model_key] = {}
+                for algorithm_key, algorithm_data in model_data.items():
+                    serializable_output[model_key][algorithm_key] = {}
+                    for result_key, result_value in algorithm_data.items():
+                        if isinstance(result_value, PropertyResult):
+                            serializable_output[model_key][algorithm_key][result_key] = result_value.to_dict()
+                        else:
+                            serializable_output[model_key][algorithm_key][result_key] = result_value
+            
+            json.dump(serializable_output, f, indent=4)
 
 if __name__ == "__main__":
     test()
