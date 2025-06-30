@@ -5,3 +5,4 @@ src/model_checker/modest/**
 Modest
 .direnv/
 output.txt
+results/**
