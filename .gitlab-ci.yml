@@ -17,7 +17,7 @@ run_test_program_python_parallel:
     matrix:
       - algorithms: 
         - "vi"
-      - only:
+        only:
         - "beb"
         - "blocksworld"
         - "cdrive"
