@@ -25,31 +25,31 @@ run_test_program_python_parallel:
         - "vi"
         - "pi"
         - "smt"
-        only:
-        - "beb"
-        - "blocksworld"
-        - "cdrive"
-        - "consensus"
-        - "csma"
-        - "eajs"
-        - "echoring"
-        - "elevators"
-        - "exploding-blocksworld"
-        - "firewire"
-        - "firewire_abst"
-        - "firewire_dl"
-        - "pacman"
-        - "philosophers-mdp"
-        - "pnueli-zuck"
-        - "rabin"
-        - "rectangle-tireworld"
-        - "tireworld"
-        - "triangle-tireworld"
-        - "wlan"
-        - "wlan_dl"
-        - "zenotravel"
-        - "zeroconf"
-        - "zeroconf_dl"
+        # only:
+        # - "beb"
+        # - "blocksworld"
+        # - "cdrive"
+        # - "consensus"
+        # - "csma"
+        # - "eajs"
+        # - "echoring"
+        # - "elevators"
+        # - "exploding-blocksworld"
+        # - "firewire"
+        # - "firewire_abst"
+        # - "firewire_dl"
+        # - "pacman"
+        # - "philosophers-mdp"
+        # - "pnueli-zuck"
+        # - "rabin"
+        # - "rectangle-tireworld"
+        # - "tireworld"
+        # - "triangle-tireworld"
+        # - "wlan"
+        # - "wlan_dl"
+        # - "zenotravel"
+        # - "zeroconf"
+        # - "zeroconf_dl"
   resource_group: lock
   image: python
   script:
@@ -62,6 +62,7 @@ run_test_program_python_parallel:
       - results/**
 
 combine_results:
+  image: python
   stage: combine_results
   script:
     - python combine_results.py
@@ -70,6 +71,7 @@ combine_results:
       - results/**
 
 graph_results:
+  image: python
   stage: graph_results
   script:
     - pip install matplotlib
