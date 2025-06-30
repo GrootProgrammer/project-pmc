@@ -56,7 +56,7 @@ run_test_program_python_parallel:
     - echo "Running tests for $algorithms with only $only"
     - pip install -r requirements.txt
     - mkdir -p results
-    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 60 --only $only
+    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 60
   artifacts:
     paths:
       - results/**
