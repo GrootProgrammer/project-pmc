@@ -7,13 +7,42 @@ run_test_program_python_quick:
   parallel:
     matrix:
       - algorithms: "vi"
-  resource_group: $algorithms
+  resource_group: lock
   image: python
   script:
     - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 10
 
-run_test_program_python_full:
-  resource_group: full
+run_test_program_python_parallel:
+  parallel:
+    matrix:
+      - algorithms: 
+        - "vi"
+      - only:
+        - "beb"
+        - "blocksworld"
+        - "cdrive"
+        - "consensus"
+        - "csma"
+        - "eajs"
+        - "echoring"
+        - "elevators"
+        - "exploding-blocksworld"
+        - "firewire"
+        - "firewire_abst"
+        - "firewire_dl"
+        - "pacman"
+        - "philosophers-mdp"
+        - "pnueli-zuck"
+        - "rabin"
+        - "rectangle-tireworld"
+        - "tireworld"
+        - "triangle-tireworld"
+        - "wlan"
+        - "wlan_dl"
+        - "zenotravel"
+        - "zeroconf"
+        - "zeroconf_dl"
+  resource_group: lock
   image: python
   script:
-    - python src/model_checker/test.py --modest-path "modest" --algorithms vi --timeout 1800 --parallel
+    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 600 --parallel --only $only
