@@ -1,4 +1,10 @@
+stages:
+  - test
+  - combine_results
+  - graph_results
+
 run_test_program_python_quick:
+  stage: test
   parallel:
     matrix:
       - algorithms:
@@ -12,6 +18,7 @@ run_test_program_python_quick:
     - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 10
 
 run_test_program_python_parallel:
+  stage: test
   parallel:
     matrix:
       - algorithms: 
@@ -54,21 +61,23 @@ run_test_program_python_parallel:
     paths:
       - results/**
 
-# combine_results:
-#   needs: 
-#     - run_test_program_python_parallel
-#   script:
-#     - python combine_results.py
-#   artifacts:
-#     paths:
-#       - results/**
-# 
-# graph_results:
-#   needs: 
-#     - combine_results
-#   script:
-#     - pip install matplotlib
-#     - python graph_results.py
-#   artifacts:
-#     paths:
-#       - results/**
+combine_results:
+  stage: combine_results
+  needs: 
+    - run_test_program_python_parallel
+  script:
+    - python combine_results.py
+  artifacts:
+    paths:
+      - results/**
+
+graph_results:
+  stage: graph_results
+  needs: 
+    - combine_results
+  script:
+    - pip install matplotlib
+    - python graph_results.py
+  artifacts:
+    paths:
+      - results/**
