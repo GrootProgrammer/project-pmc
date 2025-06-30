@@ -280,6 +280,7 @@ def test():
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--parallel", action="store_true")
     parser.add_argument("--only", type=str, default=None)
+    parser.add_argument("--output", type=str, default=None)
     args = parser.parse_args()
 
     output_info = {}
