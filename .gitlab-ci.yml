@@ -42,3 +42,22 @@ run_test_program_python_parallel:
   script:
     - echo "Running tests for $algorithms with only $only"
     - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 600 --only $only
+  artifacts:
+    paths:
+      - results/**
+
+combine_results:
+  needs: run_test_program_python_parallel
+  script:
+    - python combine_results.py
+  artifacts:
+    paths:
+      - results/**
+
+graph_results:
+  needs: combine_results
+  script:
+    - python graph_results.py
+  artifacts:
+    paths:
+      - results/**

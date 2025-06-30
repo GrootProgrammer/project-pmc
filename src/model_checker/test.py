@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 import subprocess
@@ -275,10 +276,11 @@ def test():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--modest-path", type=str, default="modest")
-    parser.add_argument("--algorithms", type=str, default="vi")
+    parser.add_argument("--algorithms", type=str, default="vi,smt")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--parallel", action="store_true")
     parser.add_argument("--only", type=str, default=None)
+    parser.add_argument("--output", type=str, default=None)
     args = parser.parse_args()
 
     output_info = {}
@@ -300,6 +302,8 @@ def test():
         download_model(k, v)
 
     def run_model(k,v,algorithm):
+        import time
+        timer = time.time()
         cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
         try:
             output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
@@ -307,6 +311,7 @@ def test():
             print(f"\t\ttimeout running {cmd}")
             for result in v["results"]:
                 output_info[k][algorithm][result] = PropertyResult(PropertyResultType.TIMEOUT, None, args.timeout)
+            output_info[k][algorithm]["total_time"] = args.timeout
             return
         if output.returncode != 0:
             print(f"\t\terror running {cmd}:")
@@ -319,6 +324,7 @@ def test():
         results = json.loads(output.stdout)
         results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
         output_info[k][algorithm] = results
+        output_info[k][algorithm]["total_time"] = time.time() - timer
 
     def run_models():
         if args.parallel:
@@ -370,13 +376,15 @@ def test():
                         print(f"\t\t{result}: {output_info[k][algorithm][result]} (time: {output_info[k][algorithm][result].time:.2f}s)")
 
     run_models()
-    print(output_info)
+    # print(output_info)
     success = True
     for k, v in output_info.items():
         for algorithm in v:
             if algorithm == "exact":
                 continue
             for result in v[algorithm]:
+                if result == "total_time":
+                    continue
                 result_value = v[algorithm][result]
                 if result_value.result_type != PropertyResultType.FLOAT:
                     continue
@@ -387,6 +395,21 @@ def test():
                     success = False
     if not success:
         exit(1)
+    if args.output:
+        with open(args.output, "w") as f:
+            # Convert PropertyResult objects to dictionaries for JSON serialization
+            serializable_output = {}
+            for model_key, model_data in output_info.items():
+                serializable_output[model_key] = {}
+                for algorithm_key, algorithm_data in model_data.items():
+                    serializable_output[model_key][algorithm_key] = {}
+                    for result_key, result_value in algorithm_data.items():
+                        if isinstance(result_value, PropertyResult):
+                            serializable_output[model_key][algorithm_key][result_key] = result_value.to_dict()
+                        else:
+                            serializable_output[model_key][algorithm_key][result_key] = result_value
+            
+            json.dump(serializable_output, f, indent=4)
 
 if __name__ == "__main__":
     test()
