@@ -87,6 +87,9 @@ def smt_thread(prop, timer, smt_timeout):
 
     solver.set("timeout", smt_timeout)
     has_solved = solver.check()
+    if has_solved == z3.unsat:
+        # cannot be solved by z3
+        return PropertyResult(PropertyResultType.NOT_SUPPORTED, None, time.time() - timer)
     if has_solved != z3.sat:
         return PropertyResult(PropertyResultType.TIMEOUT, None, time.time() - timer)
     model = solver.model()
