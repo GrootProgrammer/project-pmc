@@ -300,6 +300,8 @@ def test():
         download_model(k, v)
 
     def run_model(k,v,algorithm):
+        import time
+        timer = time.time()
         cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
         try:
             output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
@@ -319,6 +321,7 @@ def test():
         results = json.loads(output.stdout)
         results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
         output_info[k][algorithm] = results
+        output_info[k][algorithm]["total_time"] = time.time() - timer
 
     def run_models():
         if args.parallel:
@@ -377,6 +380,8 @@ def test():
             if algorithm == "exact":
                 continue
             for result in v[algorithm]:
+                if result == "total_time":
+                    continue
                 result_value = v[algorithm][result]
                 if result_value.result_type != PropertyResultType.FLOAT:
                     continue
