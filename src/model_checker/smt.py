@@ -85,7 +85,7 @@ def smt_thread(prop, timer):
             solver.add(states[s] >= 0.0)
             solver.add(states[s] <= 1.0)
 
-    solver.set("timeout", 10000)
+    solver.set("timeout", 100000)
     has_solved = solver.check()
     if has_solved != z3.sat:
         return PropertyResult(PropertyResultType.TIMEOUT, None, time.time() - timer)

@@ -106,6 +106,9 @@ if __name__ == "__main__":
         elif args.algorithm == Algorithm.SMT_EXACT:
             from smt import smt
             results = smt(mmodel)
+        elif args.algorithm == Algorithm.POLICY_ITERATION:
+            from policy_iteration import policy_iteration
+            results = policy_iteration(mmodel, args.max_iterations, args.precision)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
 
