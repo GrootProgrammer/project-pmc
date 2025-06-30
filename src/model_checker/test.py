@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 import subprocess
@@ -392,6 +393,9 @@ def test():
                     success = False
     if not success:
         exit(1)
+    if args.output:
+        with open(args.output, "w") as f:
+            json.dump(output_info, f)
 
 if __name__ == "__main__":
     test()
