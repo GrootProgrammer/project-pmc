@@ -41,4 +41,4 @@ run_test_program_python_parallel:
   image: python
   script:
     - echo "Running tests for $algorithms with only $only"
-    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 600 --parallel --only $only
+    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 600 --only $only

@@ -352,6 +352,8 @@ def test():
     
         if args.parallel:
             for k, v in info.items():
+                if args.only and k != args.only:
+                    continue
                 threads[k].join()
                 print(f"testing {k}", flush=True)
                 print("\tanswer:")
