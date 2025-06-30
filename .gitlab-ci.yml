@@ -1,7 +1,9 @@
 run_test_program_python_quick:
   parallel:
     matrix:
-      - algorithms: "vi"
+      - algorithms:
+        - "vi"
+        - "pi"
   resource_group: lock
   image: python
   script:
@@ -12,6 +14,7 @@ run_test_program_python_parallel:
     matrix:
       - algorithms: 
         - "vi"
+        - "pi"
         only:
         - "beb"
         - "blocksworld"

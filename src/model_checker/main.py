@@ -103,6 +103,9 @@ if __name__ == "__main__":
         if args.algorithm == Algorithm.VALUE_ITERATION:
             from value_iteration import value_iteration
             results = value_iteration(mmodel, args.max_iterations, args.precision)
+        elif args.algorithm == Algorithm.POLICY_ITERATION:
+            from policy_iteration import policy_iteration
+            results = policy_iteration(mmodel, args.max_iterations, args.precision)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
 
