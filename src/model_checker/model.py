@@ -1,6 +1,5 @@
 #!/bin/python
 import random
-#import numpy as np
 from utils import *
 from program import *
 from typing import *
@@ -51,7 +50,7 @@ class Model():
           
             # Select branch according to probabilities
             probabilities = [b.probability for b in branches]
-            selected_branch = np.random.choice(branches, p=probabilities)
+            selected_branch = random.choices(branches, weights=probabilities, k=1)[0]
 
             # Transition to next state
             state = self.network.jump(state, transition, selected_branch)
