@@ -1,13 +1,13 @@
 #!/bin/python
 import random
-import numpy as np
-from modest.modest import *
+#import numpy as np
 from utils import *
 from program import *
+from typing import *
 
 class Model():
-    def __init__(self):
-        self.network=Network()
+    def __init__(self, network):
+        self.network=network
     
     def info(self):
         """
@@ -19,11 +19,11 @@ class Model():
         initial_state = self.network.get_initial_state()
         print("* Initial state:", str(initial_state))
 
-    def explore(self, mode: ExploreMode, max_steps: int = 100) -> List[State]:
+    def explore(self, mode: ExploreMode, max_steps: int = 100):
         if mode == ExploreMode.RANDOM.value:
             return self.explore_mdp_random(max_steps)
 
-    def explore_mdp_random(self, max_steps: int = 100) -> List[State]:
+    def explore_mdp_random(self, max_steps: int = 100):
         """
         Explore an MDP using random action selection
         
