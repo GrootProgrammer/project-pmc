@@ -4,7 +4,7 @@ import subprocess
 import os 
 from errors import *
 
-def convert_modest_to_python(input_dir: str, modest_path: str):
+def convert_modest_to_python(input_dir: str, modest_path: str, experiment: str=None):
     """
     Converts Modest models to Python code using the Modest Toolset CLI
 
@@ -28,6 +28,8 @@ def convert_modest_to_python(input_dir: str, modest_path: str):
             "--output",
             "src/model_checker/modest/modest.py"
         ]
+        if experiment:
+            cmd.extend(["-E", experiment])
 
         # Execute conversion
         result = subprocess.run(
@@ -47,7 +49,7 @@ def delete_file(file_path):
     """
     try:
         os.remove(file_path)
-        print(f"File '{file_path}' has been deleted successfully.")
+        # print(f"File '{file_path}' has been deleted successfully.")
     except Exception as e:
         raise DeletionError(str(e))
 
@@ -56,3 +58,21 @@ def cleanup():
     Delete intermediate files
     """
     delete_file("src/model_checker/modest/modest.py")
+
+def list_to_string(input_a):
+    a=list(input_a)
+    return ",".join([str(a[i]) for i in range(len(a))])
+
+def convert_mdp(mdp):
+    out={}
+    for state, transitions in mdp.items():
+        out_state=str(state)
+        out_transitions={}
+        for tlabel, tbranches in transitions.items():
+            out_label=tlabel
+            out_branches={}
+            for target, prob in tbranches.items():
+                out_branches[str(target)]=prob
+            out_transitions[out_label]=out_branches
+        out[out_state]=out_transitions
+    return out

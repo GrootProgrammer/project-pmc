@@ -5,16 +5,13 @@ from typing import Any
 class ExploreMode(Enum):
     RANDOM = "random"
 
-class PropertyType(Enum):
-    REACHABILITY = "reachability"
-    REWARD = "reward"
-
 class Algorithm(Enum):
     VALUE_ITERATION = "vi"
     POLICY_ITERATION = "pi"
     INTERVAL_ITERATION = "ii"
     SOUND_VALUE_ITERATION = "svi"
     SMT_EXACT = "smt"
+    OPTIMISTIC_VALUE_ITERATION = "ovi"
 
 class PropertyResultType(Enum):
     NOT_SUPPORTED = "not_supported"
@@ -56,6 +53,7 @@ class PropertyResult():
             return f"{self.result}"
         if self.result_type == PropertyResultType.INCORRECT_FLOAT:
             return f"incorrect: {self.result}"
+        
         raise ValueError(f"Invalid result type: {self.result_type}")
 
     def __repr__(self):

@@ -82,7 +82,7 @@ if __name__ == "__main__":
     spec.loader.exec_module(model)
     mmodelN = model.Network()
     from model import Model
-    mmodel = Model(mmodelN)
+    mmodel = Model(model)
     # mmodel.info()
 
     if args.command == "explore":
@@ -107,6 +107,13 @@ if __name__ == "__main__":
         elif args.algorithm == Algorithm.SOUND_VALUE_ITERATION.value:
             from sound_value_iteration import sound_value_iteration
             results = sound_value_iteration(mmodel, args.precision)
+        elif args.algorithm == Algorithm.INTERVAL_ITERATION.value:
+            from interval_iteration import Interval_Iteration
+            results = Interval_Iteration(mmodel, args.precision).compute()
+            #print(f"results: {results}")
+        elif args.algorithm == Algorithm.OPTIMISTIC_VALUE_ITERATION.value:
+            from gs_value_iteration import GS_Value_Iteration
+            results = GS_Value_Iteration(mmodel, args.precision).compute()
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
 
