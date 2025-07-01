@@ -97,16 +97,16 @@ if __name__ == "__main__":
         cond_print(args.json_output, False, f"Check Modest model: {args.algorithm}")
         if args.algorithm == Algorithm.VALUE_ITERATION.value:
             from value_iteration import value_iteration
-            results = value_iteration(mmodel, args.max_iterations, args.precision)
+            results = value_iteration(mmodelN, args.max_iterations, args.precision)
         elif args.algorithm == Algorithm.SMT_EXACT.value:
             from smt import smt
-            results = smt(mmodel, args.smt_timeout)
+            results = smt(mmodelN, args.smt_timeout)
         elif args.algorithm == Algorithm.POLICY_ITERATION.value:
             from policy_iteration import policy_iteration
-            results = policy_iteration(mmodel, args.max_iterations, args.precision)
+            results = policy_iteration(mmodelN, args.max_iterations, args.precision)
         elif args.algorithm == Algorithm.SOUND_VALUE_ITERATION.value:
             from sound_value_iteration import sound_value_iteration
-            results = sound_value_iteration(mmodel, args.precision)
+            results = sound_value_iteration(mmodelN, args.precision)
         elif args.algorithm == Algorithm.INTERVAL_ITERATION.value:
             from interval_iteration import Interval_Iteration
             results = Interval_Iteration(mmodel, args.precision).compute()

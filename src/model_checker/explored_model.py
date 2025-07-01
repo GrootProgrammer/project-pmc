@@ -1,13 +1,12 @@
 
 class Model:
     def __init__(self, mmodel):
-        model = mmodel.Network()
-        def breadth_first_search(model_l):
+        def breadth_first_search(mmodel):
             import time
             start_time = time.time()
             
             new_model = {}
-            initial_state = model_l.network.get_initial_state()
+            initial_state = mmodel.network.get_initial_state()
             from queue import Queue
             new_states = Queue()
             new_states.put(initial_state)
@@ -19,13 +18,13 @@ class Model:
                 if s in new_model["states"]:
                     continue
                 new_model["states"].add(s)
-                new_model["transitions"][s] = { a: { model_l.network.jump(s, a, b): b.probability for b in model_l.network.get_branches(s, a) } for a in model_l.network.get_transitions(s)}
+                new_model["transitions"][s] = { a: { mmodel.network.jump(s, a, b): b.probability for b in mmodel.network.get_branches(s, a) } for a in mmodel.network.get_transitions(s)}
 
-                for a in model_l.network.get_transitions(s):
-                    for b in model_l.network.get_branches(s, a):
+                for a in mmodel.network.get_transitions(s):
+                    for b in mmodel.network.get_branches(s, a):
                         if __debug__:
                             assert b.probability > 0
-                        jmp = model_l.network.jump(s, a, b)
+                        jmp = mmodel.network.jump(s, a, b)
                         new_states.put(jmp)
             
             end_time = time.time()
@@ -37,7 +36,7 @@ class Model:
         def check_model(t, r, m):
             # I had issues with this before, but i think that was because a.label is not unique
             for s in m["transitions"].keys():
-                assert len(m["transitions"][s]) == len(model.network.get_transitions(r[s]))
+                assert len(m["transitions"][s]) == len(mmodel.network.get_transitions(r[s]))
 
             # this assertion is not true for some models even though the results are correct so lets not assert it
             # this is just to check that the transition probabilities all sum to 1 (barring floating point errors)
@@ -66,7 +65,7 @@ class Model:
 
             return translation_table, rev_table, m
 
-        new_model, self.initial_state = breadth_first_search(model)
+        new_model, self.initial_state = breadth_first_search(mmodel)
         if __debug__:
             identity_table = {s: s for s in new_model["states"]}
             check_model(identity_table, identity_table, new_model)
@@ -74,7 +73,7 @@ class Model:
         if __debug__:
             check_model(translation_table, rev_table, new_model)
         
-        self.old = model
+        self.old = mmodel
         self.opt = new_model
         self.trans = translation_table
         self.rev = rev_table
