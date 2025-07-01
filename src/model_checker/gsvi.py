@@ -58,45 +58,5 @@ def gsvi_thread(prop, timer, max_iterations, precision):
                 c[s] = nv
             if max(delta) < precision:
                 return c
-    
-    def ovi(c, e):
-        # all states
-        S = prop.get_states()
-        # all states that satisfy the goal
-        G = set([s for s in S if prop.get_goal_value(s) == True])
-        if __debug__:
-            assert len(G) > 0
-        # all states that are not safe
-        S0 = set([s for s in S if prop.is_safe(s) == False or len(prop.get_actions(s)) == 0])
-        Sq = S - S0 - G
-        c = {s: 0 for s in S}
-        error = e
-        Sq = prop.get_states()
-        while True:
-            c = gsvi_algo(c)
-            u = {s: c[s] * (1 + e) for s in Sq}
-            while True:
-                error = 0
-                up = True
-                down = True
-                cross = False
-                for s in Sq:
-                    v_new = prop.get_operation()([0] + [sum([(prop.get_transition_prob(s, a, s_prime) * c[s_prime]) + prop.get_reward(s,a,s_prime) for s_prime in prop.get_next_states(s, a)]) for a in prop.get_actions(s)])
-                    u_new = prop.get_operation()([0] + [sum([(prop.get_transition_prob(s, a, s_prime) * u[s_prime]) + prop.get_reward(s,a,s_prime) for s_prime in prop.get_next_states(s, a)]) for a in prop.get_actions(s)])
-                    if v_new > 0:
-                        error = max(error, (v_new - c[s])/v_new)
-                    if u_new < u[s]:
-                        up = False
-                    elif u_new > u[s]:
-                        down = False
-                    if u_new < v_new:
-                        cross = True
-                    c[s] = v_new
-                    u[s] = u_new
-                if up or cross:
-                    break
-                elif down and u[prop.get_initial_state()] - c[prop.get_initial_state()] <= 2*e*c[prop.get_initial_state()]:
-                    return 0.5 * (u[prop.get_initial_state()] + c[prop.get_initial_state()])
-            error = error/2
 
-    return PropertyResult(PropertyResultType.FLOAT, ovi(current, precision), time.time() - timer)
+    return PropertyResult(PropertyResultType.FLOAT, gsvi_algo(current)[prop.get_initial_state()], time.time() - timer)
