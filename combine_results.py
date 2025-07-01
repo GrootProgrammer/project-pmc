@@ -65,6 +65,9 @@ for file in results:
                 continue
 
 good_results = [{"model": k} | v for k, v in good_results.items()]
+good_results.insert(0, {"model": "correct"})
+for algorithm in time_results["beb"]:
+    good_results[0][algorithm] = str(sum([1 if isinstance(i[algorithm], float) else 0 for i in good_results[1:]]) + 1) + "/" + str(len(good_results) - 1)
 
 print(time_results)
 json.dump(time_results, open("results/time_results.json", "w"), indent=4)
