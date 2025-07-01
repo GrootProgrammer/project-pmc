@@ -303,7 +303,7 @@ def test():
     def run_model(k,v,algorithm):
         import time
         timer = time.time()
-        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
+        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm, "--smt-timeout", str(int(args.timeout/len(v["results"])))]
         try:
             output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
