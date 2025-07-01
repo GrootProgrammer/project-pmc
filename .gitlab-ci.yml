@@ -12,7 +12,7 @@ run_test_program_python_quick:
         - "pi"
         - "smt"
         - "svi"
-        - "gsvi"
+        - "ovi"
         - "ii"
   resource_group: lock
   image: python
@@ -29,7 +29,7 @@ run_test_program_python_parallel:
         - "pi"
         - "smt"
         - "svi"
-        - "gsvi"
+        - "ovi"
         - "ii"
         # only:
         # - "beb"
