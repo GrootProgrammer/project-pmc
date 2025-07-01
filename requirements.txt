@@ -1,2 +1,5 @@
 numpy
 z3-solver
+
+pandas
+matplotlib

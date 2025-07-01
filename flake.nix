@@ -36,6 +36,7 @@
           buildInputs = with pkgs; [
             python312
             python312Packages.matplotlib
+            python312Packages.pandas
           ];
           shellHook = ''
             export MODEST_PATH="${modest}/modest"

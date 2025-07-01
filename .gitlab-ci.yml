@@ -80,8 +80,9 @@ graph_results:
   image: python
   stage: graph_results
   script:
-    - pip install matplotlib
+    - pip install -r requirements.txt
     - python graph_results.py
+    - python gen_table.py
   artifacts:
     paths:
       - results/**
