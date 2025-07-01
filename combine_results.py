@@ -20,7 +20,7 @@ for file in results:
             if algorithm == "exact":
                 continue
             try:
-                bad = ["timeout", "error", "not_supported"]
+                bad = ["timeout", "error", "not_supported", "incorrect_float"]
                 if any([results[file][model][algorithm][r]["result_type"] in bad for r in results[file][model][algorithm] if r != "total_time"]):
                     time_results[model][algorithm] = 600
                     continue
@@ -51,6 +51,9 @@ for file in results:
                     continue
                 if any([results[file][model][algorithm][r]["result_type"] in ["timeout"] for r in results[file][model][algorithm] if r != "total_time"]):
                     good_results[model][algorithm] = "timeout"
+                    continue
+                if any([results[file][model][algorithm][r]["result_type"] in ["incorrect_float"] for r in results[file][model][algorithm] if r != "total_time"]):
+                    good_results[model][algorithm] = "incorrect"
                     continue
                 good_results[model][algorithm] = results[file][model][algorithm]["total_time"]
             except Exception as e:

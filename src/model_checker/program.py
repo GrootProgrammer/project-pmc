@@ -22,6 +22,7 @@ class PropertyResultType(Enum):
     TIMEOUT = "timeout"
     FLOAT = "float"
     BOOL = "bool"
+    INCORRECT_FLOAT = "incorrect_float"
 
 class PropertyResult():
     def __init__(self, result_type: PropertyResultType, result: Any, time: float):
@@ -53,7 +54,8 @@ class PropertyResult():
             return f"{self.result}"
         if self.result_type == PropertyResultType.BOOL:
             return f"{self.result}"
-        
+        if self.result_type == PropertyResultType.INCORRECT_FLOAT:
+            return f"incorrect: {self.result}"
         raise ValueError(f"Invalid result type: {self.result_type}")
 
     def __repr__(self):
