@@ -390,7 +390,7 @@ def test():
                 result_value = result_value.result
                 exact_value = float(v["exact"][result])
                 if abs(exact_value - result_value) > 0.001:
-                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.INCORRECT_FLOAT, result_value, result_value.time)
+                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.INCORRECT_FLOAT, result_value, v[algorithm][result].time)
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
                     # success = False
     # if not success:
