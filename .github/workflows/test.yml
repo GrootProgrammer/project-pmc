@@ -1,5 +1,11 @@
 name: Model Checker Tests
 
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
 jobs:
   # Quick tests with shorter timeout
   test-quick:
