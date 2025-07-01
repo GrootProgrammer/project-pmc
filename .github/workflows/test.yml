@@ -1,0 +1,145 @@
+name: Model Checker Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # Quick tests with shorter timeout
+  test-quick:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        algorithm: [vi, pi, smt]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          
+      - name: Run quick tests
+        run: |
+          python src/model_checker/test.py --modest-path "modest" --algorithms ${{ matrix.algorithm }} --timeout 10
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: quick-test-results-${{ matrix.algorithm }}
+          path: results/
+          retention-days: 7
+
+  # Parallel tests with longer timeout and specific models
+  test-parallel:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        algorithm: [vi, pi, smt]
+        model: [
+          beb, blocksworld, cdrive, consensus, csma, eajs, echoring, 
+          elevators, exploding-blocksworld, firewire, firewire_abst, 
+          firewire_dl, pacman, philosophers-mdp, pnueli-zuck, rabin, 
+          rectangle-tireworld, tireworld, triangle-tireworld, wlan, 
+          wlan_dl, zenotravel, zeroconf, zeroconf_dl
+        ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          
+      - name: Create results directory
+        run: mkdir -p results
+          
+      - name: Run parallel tests
+        run: |
+          echo "Running tests for ${{ matrix.algorithm }} with only ${{ matrix.model }}"
+          python src/model_checker/test.py --modest-path "modest" --algorithms ${{ matrix.algorithm }} --timeout 60 --only ${{ matrix.model }}
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: parallel-test-results-${{ matrix.algorithm }}-${{ matrix.model }}
+          path: results/
+          retention-days: 7
+
+  # Combine results from all test jobs
+  combine-results:
+    runs-on: ubuntu-latest
+    needs: [test-parallel]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+        with:
+          path: results/
+          
+      - name: Combine results
+        run: |
+          python combine_results.py
+          
+      - name: Upload combined results
+        uses: actions/upload-artifact@v3
+        with:
+          name: combined-results
+          path: results/
+          retention-days: 30
+
+  # Generate graphs from combined results
+  graph-results:
+    runs-on: ubuntu-latest
+    needs: combine-results
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install matplotlib
+          
+      - name: Download combined results
+        uses: actions/download-artifact@v3
+        with:
+          name: combined-results
+          path: results/
+          
+      - name: Generate graphs
+        run: |
+          python graph_results.py
+          
+      - name: Upload graphs
+        uses: actions/upload-artifact@v3
+        with:
+          name: result-graphs
+          path: results/*.png
+          retention-days: 30 
