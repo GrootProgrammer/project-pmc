@@ -1,6 +1,5 @@
 # this file contains the value iteration algorithm for model checking
 # this should work with all properties and gives an estimation to the probability of the property being satisfied
-# if the GIL is disabled, it will multithread the value iteration for each property
 # made by: Ryan Groot
 
 import threading     

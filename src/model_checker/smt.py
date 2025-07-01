@@ -1,6 +1,6 @@
 # this file converts the MDP problem to a SMT problem and solves it using z3
 # solves fast for some models, loops for others
-# results unsat if the solution cannot be expressed as a fraction (which should always be possible?)
+# results unsat if the solution cannot be expressed as a fraction (which should always be possible? no not true after thinking a bit)
 # made by: Ryan Groot
 
 import threading     

@@ -1,6 +1,5 @@
-# this file contains the value iteration algorithm for model checking
-# this should work with all properties and gives an estimation to the probability of the property being satisfied
-# if the GIL is disabled, it will multithread the value iteration for each property
+# this file contains the sound value iteration algorithm for model checking
+# this should work with all properties and gives a *sound* estimation to the probability of the property being satisfied
 # made by: Ryan Groot
 
 import time
