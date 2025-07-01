@@ -35,6 +35,7 @@ SMT Options:
 
 example usage:
 ```
+> pip install -r requirements.txt
 > python src/model
 _checker/main.py --python-model test-files/beb.py check --algorithm pi
 Load Modest model

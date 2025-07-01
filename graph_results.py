@@ -69,7 +69,7 @@ def plot_all_results():
         
         if valid_values:  # Only plot if there are valid values
             plt.plot([sorted_models[i] for i in valid_indices], valid_values, 
-                    marker="o", label=algorithm, linewidth=2, markersize=6)
+                    marker="o", label=algorithm, linewidth=2, markersize=6, alpha=0.75)
     
     plt.yscale("log")
     plt.xlabel("Model")
