@@ -57,6 +57,12 @@ Clean up
 
 ![ smt results ](https://gitlab.utwente.nl/pmc-course/projects-2025/project-4/-/jobs/artifacts/main/raw/results/time_results_smt.png?job=graph_results)
 
+![ svi results ](https://gitlab.utwente.nl/pmc-course/projects-2025/project-4/-/jobs/artifacts/main/raw/results/time_results_svi.png?job=graph_results)
+
+![ ovi results ](https://gitlab.utwente.nl/pmc-course/projects-2025/project-4/-/jobs/artifacts/main/raw/results/time_results_ovi.png?job=graph_results)
+
+![ ii results ](https://gitlab.utwente.nl/pmc-course/projects-2025/project-4/-/jobs/artifacts/main/raw/results/time_results_ii.png?job=graph_results)
+
 ![ all results ](https://gitlab.utwente.nl/pmc-course/projects-2025/project-4/-/jobs/artifacts/main/raw/results/time_results_all.png?job=graph_results)
 
 ![ all results table ](https://gitlab.utwente.nl/pmc-course/projects-2025/project-4/-/jobs/artifacts/main/raw/results/good_results_table.png?job=graph_results)
