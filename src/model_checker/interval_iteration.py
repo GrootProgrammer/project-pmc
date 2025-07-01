@@ -475,16 +475,20 @@ class Interval_Iteration():
             property=self.properties[i]
             property_type=property.exp.op
             start = time.time()
-            #print(f"Processing {i+1}/{len(self.properties)} propertie(s): {property.name} {property_type}")
-            if property_type == PropertyType.p_min.value:
-                bounds,n_iter=self.compute_reachability_min(self.target_states[i])
-            elif property_type == PropertyType.p_max.value:
-                bounds,n_iter=self.compute_reachability_max(self.target_states[i])
-            else:
-                continue
-            exact_value=(bounds[0]+bounds[1])/2
             from program import PropertyResult
-            result[property.name]=PropertyResult(PropertyResultType.FLOAT, exact_value, time.time()-start)
+            try:
+                #print(f"Processing {i+1}/{len(self.properties)} propertie(s): {property.name} {property_type}")
+                if property_type == PropertyType.p_min.value:
+                    bounds,n_iter=self.compute_reachability_min(self.target_states[i])
+                elif property_type == PropertyType.p_max.value:
+                    bounds,n_iter=self.compute_reachability_max(self.target_states[i])
+                else:
+                    continue
+                exact_value=(bounds[0]+bounds[1])/2
+                result[property.name]=PropertyResult(PropertyResultType.FLOAT, exact_value, time.time()-start)
+            except Exception as e:
+                result[property.name]=PropertyResult(PropertyResultType.ERROR, None, time.time()-start)
+                continue
             # result[property.name]={
             #     "type":property_type,
             #     "bounds":bounds,

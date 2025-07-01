@@ -259,12 +259,15 @@ class GS_Value_Iteration():
             start = time.time()
             # print(f"Processing {i+1}/{len(self.properties)} propertie(s): {property.name} {property_type}")
             # n_iter=None
-            if property_type.startswith("p"):
-                value,n_iter=self.compute_reachability(target_states=self.target_states[i],op=property_type)
-            else:
-                value=self.compute_reward(target_states=self.target_states[i],op=property_type,ap=ap)
-
             from program import PropertyResult
+            try:
+                if property_type.startswith("p"):
+                    value,n_iter=self.compute_reachability(target_states=self.target_states[i],op=property_type)
+                else:
+                    value=self.compute_reward(target_states=self.target_states[i],op=property_type,ap=ap)
+            except Exception as e:
+                result[property.name]=PropertyResult(PropertyResultType.ERROR, None, time.time()-start)
+                continue
             result[property.name]=PropertyResult(PropertyResultType.FLOAT, value, time.time()-start)
 
             # result[property.name]={
