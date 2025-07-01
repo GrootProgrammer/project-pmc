@@ -3,6 +3,8 @@ import os
 
 results = {}
 
+print(os.listdir("results"))
+
 for file in os.listdir("results"):
     if file.endswith(".json") and file != "time_results.json":
         with open(f"results/{file}", "r") as f:
