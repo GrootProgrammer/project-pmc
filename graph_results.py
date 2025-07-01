@@ -26,6 +26,7 @@ def plot_specific_results(index, label):
 
     plt.legend()
     plt.xticks(rotation=90)
+    plt.tight_layout()
     plt.savefig(f"results/time_results_{label}.png")
 
 for i, algorithm in enumerate(time_results["beb"].keys()):
@@ -41,6 +42,7 @@ def plot_all_results():
 
     plt.legend()
     plt.xticks(rotation=90)
+    plt.tight_layout()
     plt.savefig(f"results/time_results_all.png")
 
 plot_all_results()
