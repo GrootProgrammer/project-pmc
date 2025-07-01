@@ -104,6 +104,9 @@ if __name__ == "__main__":
         elif args.algorithm == Algorithm.POLICY_ITERATION.value:
             from policy_iteration import policy_iteration
             results = policy_iteration(mmodel, args.max_iterations, args.precision)
+        elif args.algorithm == Algorithm.SOUND_VALUE_ITERATION.value:
+            from sound_value_iteration import sound_value_iteration
+            results = sound_value_iteration(mmodel, args.precision)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
 
