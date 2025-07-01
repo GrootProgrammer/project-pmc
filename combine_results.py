@@ -20,6 +20,9 @@ for file in results:
             if algorithm == "exact":
                 continue
             try:
+                if any([results[file][model][algorithm][r]["result_type"] == "timeout" or results[file][model][algorithm][r]["result_type"] == "error" for r in results[file][model][algorithm] if r != "total_time"]):
+                    time_results[model][algorithm] = 600
+                    continue
                 time_results[model][algorithm] = results[file][model][algorithm]["total_time"]
             except Exception as e:
                 print(f"Error: {e}")
