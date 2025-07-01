@@ -3,11 +3,12 @@
 [[_TOC_]]
 
 [How to run]
+
 usage: main.py [-h] [--modest MODEST]
                (--modest-model MODEST_MODEL | --python-model PYTHON_MODEL)
                {explore,check} ...
 
-explore does a random walk, check is the one we are interested in
+explore does a random walk, check is the one we are interested in:
 
 usage: main.py check [-h] [--algorithm {vi,pi,ii,svi,smt}]
                      [--json-output]
@@ -35,8 +36,7 @@ SMT Options:
 example usage:
 ```
 > python src/model
-_checker/main.py --python-model test-files/beb.py check --alg
-orithm pi
+_checker/main.py --python-model test-files/beb.py check --algorithm pi
 Load Modest model
 --------------------
 --------------------
