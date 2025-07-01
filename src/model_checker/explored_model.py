@@ -1,6 +1,7 @@
 
 class Model:
     def __init__(self, mmodel):
+        mmodel = mmodel.Network()
         def breadth_first_search(mmodel):
             import time
             start_time = time.time()
