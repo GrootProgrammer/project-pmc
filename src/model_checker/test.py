@@ -123,7 +123,6 @@ def test():
                 "delay": "36",
             },
             "results": {
-                "deadline": "1.0",
                 "rounds": "1.0",
                 "time_max": "365",
                 "time_min": "102.25"
