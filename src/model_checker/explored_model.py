@@ -1,13 +1,13 @@
 
 class Model:
     def __init__(self, mmodel):
-        mmodel = mmodel.Network()
-        def breadth_first_search(mmodel):
+        model = mmodel.Network()
+        def breadth_first_search(model_l):
             import time
             start_time = time.time()
             
             new_model = {}
-            initial_state = mmodel.network.get_initial_state()
+            initial_state = model_l.network.get_initial_state()
             from queue import Queue
             new_states = Queue()
             new_states.put(initial_state)
@@ -19,13 +19,13 @@ class Model:
                 if s in new_model["states"]:
                     continue
                 new_model["states"].add(s)
-                new_model["transitions"][s] = { a: { mmodel.network.jump(s, a, b): b.probability for b in mmodel.network.get_branches(s, a) } for a in mmodel.network.get_transitions(s)}
+                new_model["transitions"][s] = { a: { model_l.network.jump(s, a, b): b.probability for b in model_l.network.get_branches(s, a) } for a in model_l.network.get_transitions(s)}
 
-                for a in mmodel.network.get_transitions(s):
-                    for b in mmodel.network.get_branches(s, a):
+                for a in model_l.network.get_transitions(s):
+                    for b in model_l.network.get_branches(s, a):
                         if __debug__:
                             assert b.probability > 0
-                        jmp = mmodel.network.jump(s, a, b)
+                        jmp = model_l.network.jump(s, a, b)
                         new_states.put(jmp)
             
             end_time = time.time()
@@ -66,7 +66,7 @@ class Model:
 
             return translation_table, rev_table, m
 
-        new_model, self.initial_state = breadth_first_search(mmodel)
+        new_model, self.initial_state = breadth_first_search(model)
         if __debug__:
             identity_table = {s: s for s in new_model["states"]}
             check_model(identity_table, identity_table, new_model)
@@ -74,7 +74,7 @@ class Model:
         if __debug__:
             check_model(translation_table, rev_table, new_model)
         
-        self.old = mmodel
+        self.old = model
         self.opt = new_model
         self.trans = translation_table
         self.rev = rev_table
