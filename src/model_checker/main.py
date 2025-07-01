@@ -114,6 +114,9 @@ if __name__ == "__main__":
         elif args.algorithm == Algorithm.OPTIMISTIC_VALUE_ITERATION.value:
             from gs_value_iteration import GS_Value_Iteration
             results = GS_Value_Iteration(mmodel, args.precision).compute()
+        elif args.algorithm == Algorithm.GAUSS_SEIDEL_VALUE_ITERATION.value:
+            from gsvi import gsvi
+            results = gsvi(mmodelN, args.max_iterations, args.precision)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
 

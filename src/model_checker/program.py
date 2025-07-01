@@ -12,6 +12,7 @@ class Algorithm(Enum):
     SOUND_VALUE_ITERATION = "svi"
     SMT_EXACT = "smt"
     OPTIMISTIC_VALUE_ITERATION = "ovi"
+    GAUSS_SEIDEL_VALUE_ITERATION = "gsvi"
 
 class PropertyResultType(Enum):
     NOT_SUPPORTED = "not_supported"
