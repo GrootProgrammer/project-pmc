@@ -49,8 +49,8 @@ if __name__ == "__main__":
                                       help="Verify model properties")
 
     # Algorithm selection
-    check_parser.add_argument("--algorithm", type=Algorithm,
-                            choices=list(Algorithm), default=Algorithm.VALUE_ITERATION.value,
+    check_parser.add_argument("--algorithm", type=str,
+                            choices=list([a.value for a in Algorithm]), default=Algorithm.VALUE_ITERATION.value,
                             help="Verification algorithm to use")
 
     check_parser.add_argument("--json-output", action="store_true",
@@ -95,13 +95,13 @@ if __name__ == "__main__":
     elif args.command == "check":
         cond_print(args.json_output, False, "-"*20)
         cond_print(args.json_output, False, f"Check Modest model: {args.algorithm}")
-        if args.algorithm == Algorithm.VALUE_ITERATION:
+        if args.algorithm == Algorithm.VALUE_ITERATION.value:
             from value_iteration import value_iteration
             results = value_iteration(mmodel, args.max_iterations, args.precision)
-        elif args.algorithm == Algorithm.SMT_EXACT:
+        elif args.algorithm == Algorithm.SMT_EXACT.value:
             from smt import smt
             results = smt(mmodel, args.smt_timeout)
-        elif args.algorithm == Algorithm.POLICY_ITERATION:
+        elif args.algorithm == Algorithm.POLICY_ITERATION.value:
             from policy_iteration import policy_iteration
             results = policy_iteration(mmodel, args.max_iterations, args.precision)
         else:
