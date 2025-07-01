@@ -88,6 +88,8 @@ class Model:
         return self.opt['transitions'][s].keys()
 
     def get_transition_prob(self, s, a, s_prime):
+        if s not in self.opt['transitions'] or a not in self.opt['transitions'][s] or s_prime not in self.opt['transitions'][s][a]:
+            return 0
         return self.opt['transitions'][s][a][s_prime]
 
     def get_next_states(self, s, a):
