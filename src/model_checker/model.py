@@ -22,7 +22,7 @@ class Model():
             self.extract_property_ap(self.properties),
         )
         
-    def extract_property_ap(self, properties: list[Property]) -> list[int]:
+    def extract_property_ap(self, properties) -> list[int]:
         aps=[]
         for property in properties:
             property_exp=property.exp
@@ -43,7 +43,7 @@ class Model():
             aps.append(main_ap)
         return aps
 
-    def explore_mdp_all(self, aps:list[int]=[]) -> tuple[State,dict[State,dict],list[set[State]] ]:
+    def explore_mdp_all(self, aps):
         network = self.network.Network()
         init_state=network.get_initial_state()
         queue = deque([init_state])
