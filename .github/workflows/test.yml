@@ -97,6 +97,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: results/
+          merge-multiple: true
           
       - name: Combine results
         run: |
