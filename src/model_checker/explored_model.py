@@ -37,7 +37,7 @@ class Model:
         def check_model(t, r, m):
             # I had issues with this before, but i think that was because a.label is not unique
             for s in m["transitions"].keys():
-                assert len(m["transitions"][s]) == len(mmodel.network.get_transitions(r[s]))
+                assert len(m["transitions"][s]) == len(model.network.get_transitions(r[s]))
 
             # this assertion is not true for some models even though the results are correct so lets not assert it
             # this is just to check that the transition probabilities all sum to 1 (barring floating point errors)
