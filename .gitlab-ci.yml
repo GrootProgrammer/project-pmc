@@ -11,6 +11,7 @@ run_test_program_python_quick:
         - "vi"
         - "pi"
         - "smt"
+        - "svi"
   resource_group: lock
   image: python
   script:
@@ -25,6 +26,7 @@ run_test_program_python_parallel:
         - "vi"
         - "pi"
         - "smt"
+        - "svi"
         # only:
         # - "beb"
         # - "blocksworld"
