@@ -22,7 +22,7 @@ for file in results:
             try:
                 bad = ["timeout", "error", "not_supported", "incorrect_float"]
                 if any([results[file][model][algorithm][r]["result_type"] in bad for r in results[file][model][algorithm] if r != "total_time"]):
-                    time_results[model][algorithm] = 600
+                    time_results[model][algorithm] = 1000
                     continue
                 time_results[model][algorithm] = results[file][model][algorithm]["total_time"]
             except Exception as e:

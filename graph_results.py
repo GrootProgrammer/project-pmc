@@ -17,7 +17,7 @@ for model in time_results:
     if valid_times:
         average_time = sum(valid_times) / len(valid_times)
     else:
-        average_time = 600  # Default for models with no valid times
+        average_time = 1000  # Default for models with no valid times
     model_averages[model] = average_time
 
 sorted_models = sorted(model_averages, key=lambda x: model_averages[x])
@@ -30,8 +30,8 @@ for alg in algorithms:
         if alg in time_results[model]:
             value = time_results[model][alg]
             # Handle timeout values (600 seconds)
-            if value == 600:
-                plot_data[alg].append(600)
+            if value == 1000:
+                plot_data[alg].append(1000)
             else:
                 plot_data[alg].append(value)
         else:

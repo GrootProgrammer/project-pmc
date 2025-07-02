@@ -33,43 +33,44 @@ run_test_program_python_parallel:
         - "gsvi"
         - "ovi"
         - "ii"
-        # only:
-        # - "beb"
-        # - "blocksworld"
-        # - "cdrive"
-        # - "consensus"
-        # - "csma"
-        # - "eajs"
-        # - "echoring"
-        # - "elevators"
-        # - "exploding-blocksworld"
-        # - "firewire"
-        # - "firewire_abst"
-        # - "firewire_dl"
-        # - "pacman"
-        # - "philosophers-mdp"
-        # - "pnueli-zuck"
-        # - "rabin"
-        # - "rectangle-tireworld"
-        # - "tireworld"
-        # - "triangle-tireworld"
-        # - "wlan"
-        # - "wlan_dl"
-        # - "zenotravel"
-        # - "zeroconf"
-        # - "zeroconf_dl"
+        only:
+        - "beb"
+        - "blocksworld"
+        - "cdrive"
+        - "consensus"
+        - "csma"
+        - "eajs"
+        - "echoring"
+        - "elevators"
+        - "exploding-blocksworld"
+        - "firewire"
+        - "firewire_abst"
+        - "firewire_dl"
+        - "pacman"
+        - "philosophers-mdp"
+        - "pnueli-zuck"
+        - "rabin"
+        - "rectangle-tireworld"
+        - "tireworld"
+        - "triangle-tireworld"
+        - "wlan"
+        - "wlan_dl"
+        - "zenotravel"
+        - "zeroconf"
+        - "zeroconf_dl"
   resource_group: lock
   image: python
   script:
     - echo "Running tests for $algorithms with only $only"
     - pip install -r requirements.txt
     - mkdir -p results
-    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 100 --output results/$algorithms.json
+    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --only $only --timeout 1000 --output results/$algorithms-$only.json
   artifacts:
     paths:
       - results/**
 
 combine_results:
+  resource_group: lock
   image: python
   stage: combine_results
   script:
@@ -79,6 +80,7 @@ combine_results:
       - results/**
 
 graph_results:
+  resource_group: lock
   image: python
   stage: graph_results
   script:

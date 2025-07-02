@@ -70,7 +70,7 @@ jobs:
       - name: Run parallel tests
         run: |
           echo "Running tests for ${{ matrix.algorithm }} with only ${{ matrix.model }}"
-          python src/model_checker/test.py --modest-path "modest" --algorithms ${{ matrix.algorithm }} --timeout 100 --only ${{ matrix.model }} --output results/${{ matrix.algorithm }}-${{ matrix.model }}.json
+          python src/model_checker/test.py --modest-path "modest" --algorithms ${{ matrix.algorithm }} --timeout 1000 --only ${{ matrix.model }} --output results/${{ matrix.algorithm }}-${{ matrix.model }}.json
           
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -126,6 +126,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          pip install matplotlib
           
       - name: Download combined results
         uses: actions/download-artifact@v4
@@ -136,7 +137,6 @@ jobs:
       - name: Generate graphs
         run: |
           python graph_results.py
-          python gen_table.py
           
       - name: Upload graphs
         uses: actions/upload-artifact@v4

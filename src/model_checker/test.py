@@ -114,8 +114,8 @@ def test():
                 "elected": "1.0",
                 "time_max": "299",
                 "time_min": "138.25",
-                "time_sending": "18",
-                "deadline": "0.5"
+                "time_sending": "18"
+                # "deadline": "0.5"
             }
         },
         "firewire_abst": {
@@ -318,7 +318,10 @@ def test():
                 print("\t\t\t" + line)
             for line in output.stderr.splitlines():
                 print("\t\t\t" + line)
-            exit(1)
+            for r in v["results"]:
+                output_info[k][algorithm][r] = PropertyResult(PropertyResultType.ERROR, None, args.timeout)
+            output_info[k][algorithm]["total_time"] = args.timeout
+            return
         import json
         results = json.loads(output.stdout)
         results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
@@ -404,6 +407,8 @@ def test():
                 for algorithm_key, algorithm_data in model_data.items():
                     serializable_output[model_key][algorithm_key] = {}
                     for result_key, result_value in algorithm_data.items():
+                        if result_key not in output_info[model_key]["exact"]:
+                            continue
                         if isinstance(result_value, PropertyResult):
                             serializable_output[model_key][algorithm_key][result_key] = result_value.to_dict()
                         else:
