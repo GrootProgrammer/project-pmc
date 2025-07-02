@@ -137,6 +137,7 @@ jobs:
       - name: Generate graphs
         run: |
           python graph_results.py
+          python gen_table.py
           
       - name: Upload graphs
         uses: actions/upload-artifact@v4
