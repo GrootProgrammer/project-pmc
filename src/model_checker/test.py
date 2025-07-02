@@ -384,6 +384,7 @@ def test():
         for algorithm in v:
             if algorithm == "exact":
                 continue
+            assert "total_time" in v[algorithm]
             for result in v[algorithm]:
                 if result == "total_time":
                     continue
@@ -407,7 +408,7 @@ def test():
                 for algorithm_key, algorithm_data in model_data.items():
                     serializable_output[model_key][algorithm_key] = {}
                     for result_key, result_value in algorithm_data.items():
-                        if result_key not in output_info[model_key]["exact"]:
+                        if result_key not in output_info[model_key]["exact"] and result_key != "total_time":
                             continue
                         if isinstance(result_value, PropertyResult):
                             serializable_output[model_key][algorithm_key][result_key] = result_value.to_dict()
