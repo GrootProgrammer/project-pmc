@@ -9,7 +9,7 @@ from property import Property
 from explored_model import Model
 from program import PropertyResult, PropertyResultType
 
-def policy_iteration(mmodel, max_iterations, precision):
+def policy_iteration(mmodel, max_iterations, precision, dynamic_precision):
     mmodel = mmodel.network
     opt_model = Model(mmodel)
     properties_ = [Property(opt_model, p) for p in mmodel.network.properties]
@@ -19,12 +19,12 @@ def policy_iteration(mmodel, max_iterations, precision):
     for prop in properties:
         timer = time.time()
         try:
-            results[prop.name] = policy_iteration_thread(prop, timer, max_iterations, precision)
+            results[prop.name] = policy_iteration_thread(prop, timer, max_iterations, precision, dynamic_precision)
         except Exception as e:
                 results[prop.name] = PropertyResult(PropertyResultType.ERROR, None, time.time() - timer)
     return results
 
-def policy_iteration_thread(prop, timer, max_iterations, precision):
+def policy_iteration_thread(prop, timer, max_iterations, precision, dynamic_precision):
     # all states
     S = prop.get_states()
     # all states that satisfy the goal
@@ -37,7 +37,7 @@ def policy_iteration_thread(prop, timer, max_iterations, precision):
     pi = {s: list(prop.get_actions(s))[0] if len(prop.get_actions(s)) > 0 else None for s in S}
     V = {s: 0 for s in S}
 
-    def policy_evaluation(Vc):
+    def policy_evaluation(Vc, err):
         def loop(Vcc):
             _v = {}
             for s in S:
@@ -54,7 +54,7 @@ def policy_iteration_thread(prop, timer, max_iterations, precision):
             return delta, _v
         while True:
             delta, Vc = loop(Vc)
-            if delta < precision:
+            if delta < err:
                 break
             continue
         return Vc
@@ -73,10 +73,18 @@ def policy_iteration_thread(prop, timer, max_iterations, precision):
             pic[s] = argmax
         return policy_stable, pic
     
+    if dynamic_precision:
+        e = 1
+    else:
+        e = precision
+
     for iteration in range(max_iterations):
-        V = policy_evaluation(V)
+        V = policy_evaluation(V, e)
         policy_stable, pi = policy_improvement(V, pi)
         if policy_stable:
-            break
+            if e <= precision:
+                break
+            e = e / 10
+            continue
 
     return PropertyResult(PropertyResultType.FLOAT, V[prop.get_initial_state()], time.time() - timer)

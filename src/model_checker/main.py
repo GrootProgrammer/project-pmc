@@ -60,6 +60,10 @@ if __name__ == "__main__":
     value_iteration_options.add_argument("--max-iterations", type=int, default=sys.maxsize,
                             help="Maximum number of iterations for value iteration")
 
+    policy_iteration_options = check_parser.add_argument_group("Policy Iteration Options")
+    policy_iteration_options.add_argument("--dynamic-precision", action="store_true", default=False,
+                            help="Use dynamic precision for policy iteration. This makes the precision smaller over iterations of the value iteration, helps with bigger models")
+
     smt_options = check_parser.add_argument_group("SMT Options")
     smt_options.add_argument("--smt-timeout", type=int, default=10000,
                             help="Timeout for SMT solver")
@@ -103,7 +107,7 @@ if __name__ == "__main__":
             results = smt(mmodelN, args.smt_timeout)
         elif args.algorithm == Algorithm.POLICY_ITERATION.value:
             from policy_iteration import policy_iteration
-            results = policy_iteration(mmodelN, args.max_iterations, args.precision)
+            results = policy_iteration(mmodelN, args.max_iterations, args.precision, args.dynamic_precision)
         elif args.algorithm == Algorithm.SOUND_VALUE_ITERATION.value:
             from sound_value_iteration import sound_value_iteration
             results = sound_value_iteration(mmodelN, args.precision)
