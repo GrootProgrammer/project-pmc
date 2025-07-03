@@ -304,7 +304,7 @@ def test():
         import time
         timer = time.time()
         if algorithm == "pi-dp":
-            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm, "--smt-timeout", str(int((args.timeout*1000)/len(v["results"]))), "--dynamic-precision"]
+            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", "pi", "--smt-timeout", str(int((args.timeout*1000)/len(v["results"]))), "--dynamic-precision"]
             algorithm = "pi"
         else:
             cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm, "--smt-timeout", str(int((args.timeout*1000)/len(v["results"])))]
