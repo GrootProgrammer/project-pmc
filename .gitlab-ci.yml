@@ -9,6 +9,7 @@ run_test_program_python_quick:
     matrix:
       - algorithms:
         - "vi"
+        - "pi-dp"
         - "pi"
         - "smt"
         - "svi"
@@ -27,6 +28,7 @@ run_test_program_python_parallel:
     matrix:
       - algorithms: 
         - "vi"
+        - "pi-dp"
         - "pi"
         - "smt"
         - "svi"
