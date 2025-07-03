@@ -1,4 +1,5 @@
 import json
+from math import log10
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,11 +14,11 @@ algorithms = sorted(list(all_algorithms))
 # Sort models by their average time
 model_averages = {}
 for model in time_results:
-    valid_times = [v for v in time_results[model].values() if isinstance(v, (int, float)) and v != 600]
+    valid_times = [v for v in time_results[model].values() if isinstance(v, (int, float)) and v != 1000]
     if valid_times:
-        average_time = sum(valid_times) / len(valid_times)
+        average_time = sum([log10(v) for v in valid_times]) / len(valid_times)
     else:
-        average_time = 1000  # Default for models with no valid times
+        average_time = log10(1000)  # Default for models with no valid times
     model_averages[model] = average_time
 
 sorted_models = sorted(model_averages, key=lambda x: model_averages[x])

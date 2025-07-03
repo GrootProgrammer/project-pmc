@@ -111,7 +111,7 @@ def test():
                 "deadline": "200"
             },
             "results": {
-                "elected": "1.0",
+                # "elected": "1.0",
                 "time_max": "299",
                 "time_min": "138.25",
                 "time_sending": "18"
