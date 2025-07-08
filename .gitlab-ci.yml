@@ -1,17 +1,40 @@
+stages:
+  - test
+  - combine_results
+  - graph_results
+
 run_test_program_python_quick:
+  stage: test
   parallel:
     matrix:
-      - algorithms: "vi"
+      - algorithms:
+        - "vi"
+        - "pi-dp"
+        - "pi"
+        - "smt"
+        - "svi"
+        - "gsvi"
+        - "ovi"
+        - "ii"
   resource_group: lock
   image: python
   script:
+    - pip install -r requirements.txt
     - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 10
 
 run_test_program_python_parallel:
+  stage: test
   parallel:
     matrix:
       - algorithms: 
         - "vi"
+        - "pi-dp"
+        - "pi"
+        - "smt"
+        - "svi"
+        - "gsvi"
+        - "ovi"
+        - "ii"
         only:
         - "beb"
         - "blocksworld"
@@ -41,13 +64,17 @@ run_test_program_python_parallel:
   image: python
   script:
     - echo "Running tests for $algorithms with only $only"
-    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --timeout 60 --only $only
+    - pip install -r requirements.txt
+    - mkdir -p results
+    - python src/model_checker/test.py --modest-path "modest" --algorithms $algorithms --only $only --timeout 1000 --output results/$algorithms-$only.json
   artifacts:
     paths:
       - results/**
 
 combine_results:
-  needs: run_test_program_python_parallel
+  resource_group: lock
+  image: python
+  stage: combine_results
   script:
     - python combine_results.py
   artifacts:
@@ -55,9 +82,13 @@ combine_results:
       - results/**
 
 graph_results:
-  needs: combine_results
+  resource_group: lock
+  image: python
+  stage: graph_results
   script:
+    - pip install -r requirements.txt
     - python graph_results.py
+    - python gen_table.py
   artifacts:
     paths:
       - results/**

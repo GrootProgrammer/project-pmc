@@ -19,7 +19,7 @@ class Property:
             self.safe_exp = None
 
         # xor assertion
-        self.is_valid = (self.is_probability or self.is_reward) and (not (self.is_probability and self.is_reward))
+        self.is_valid = (self.is_probability != self.is_reward)
 
         self.model = model
         self.goal_cache = {}

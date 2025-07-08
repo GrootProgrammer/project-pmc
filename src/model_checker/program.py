@@ -5,15 +5,14 @@ from typing import Any
 class ExploreMode(Enum):
     RANDOM = "random"
 
-class PropertyType(Enum):
-    REACHABILITY = "reachability"
-    REWARD = "reward"
-
 class Algorithm(Enum):
     VALUE_ITERATION = "vi"
     POLICY_ITERATION = "pi"
     INTERVAL_ITERATION = "ii"
     SOUND_VALUE_ITERATION = "svi"
+    SMT_EXACT = "smt"
+    OPTIMISTIC_VALUE_ITERATION = "ovi"
+    GAUSS_SEIDEL_VALUE_ITERATION = "gsvi"
 
 class PropertyResultType(Enum):
     NOT_SUPPORTED = "not_supported"
@@ -21,6 +20,7 @@ class PropertyResultType(Enum):
     TIMEOUT = "timeout"
     FLOAT = "float"
     BOOL = "bool"
+    INCORRECT_FLOAT = "incorrect_float"
 
 class PropertyResult():
     def __init__(self, result_type: PropertyResultType, result: Any, time: float):
@@ -52,6 +52,8 @@ class PropertyResult():
             return f"{self.result}"
         if self.result_type == PropertyResultType.BOOL:
             return f"{self.result}"
+        if self.result_type == PropertyResultType.INCORRECT_FLOAT:
+            return f"incorrect: {self.result}"
         
         raise ValueError(f"Invalid result type: {self.result_type}")
 

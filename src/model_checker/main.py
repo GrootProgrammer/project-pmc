@@ -49,8 +49,8 @@ if __name__ == "__main__":
                                       help="Verify model properties")
 
     # Algorithm selection
-    check_parser.add_argument("--algorithm", type=Algorithm,
-                            choices=list(Algorithm), default=Algorithm.VALUE_ITERATION.value,
+    check_parser.add_argument("--algorithm", type=str,
+                            choices=list([a.value for a in Algorithm]), default=Algorithm.VALUE_ITERATION.value,
                             help="Verification algorithm to use")
 
     check_parser.add_argument("--json-output", action="store_true",
@@ -59,8 +59,14 @@ if __name__ == "__main__":
     value_iteration_options = check_parser.add_argument_group("Value Iteration Options")
     value_iteration_options.add_argument("--max-iterations", type=int, default=sys.maxsize,
                             help="Maximum number of iterations for value iteration")
-    
-    
+
+    policy_iteration_options = check_parser.add_argument_group("Policy Iteration Options")
+    policy_iteration_options.add_argument("--dynamic-precision", action="store_true", default=False,
+                            help="Use dynamic precision for policy iteration. This makes the precision smaller over iterations of the value iteration, helps with bigger models")
+
+    smt_options = check_parser.add_argument_group("SMT Options")
+    smt_options.add_argument("--smt-timeout", type=int, default=10000,
+                            help="Timeout for SMT solver")
     # Numerical parameters
     check_parser.add_argument("--precision", type=float, default=1e-6,
                             help="Numerical convergence threshold")
@@ -80,7 +86,7 @@ if __name__ == "__main__":
     spec.loader.exec_module(model)
     mmodelN = model.Network()
     from model import Model
-    mmodel = Model(mmodelN)
+    mmodel = Model(model)
     # mmodel.info()
 
     if args.command == "explore":
@@ -93,9 +99,28 @@ if __name__ == "__main__":
     elif args.command == "check":
         cond_print(args.json_output, False, "-"*20)
         cond_print(args.json_output, False, f"Check Modest model: {args.algorithm}")
-        if args.algorithm == Algorithm.VALUE_ITERATION:
+        if args.algorithm == Algorithm.VALUE_ITERATION.value:
             from value_iteration import value_iteration
-            results = value_iteration(mmodel, args.max_iterations, args.precision)
+            results = value_iteration(mmodelN, args.max_iterations, args.precision)
+        elif args.algorithm == Algorithm.SMT_EXACT.value:
+            from smt import smt
+            results = smt(mmodelN, args.smt_timeout)
+        elif args.algorithm == Algorithm.POLICY_ITERATION.value:
+            from policy_iteration import policy_iteration
+            results = policy_iteration(mmodelN, args.max_iterations, args.precision, args.dynamic_precision)
+        elif args.algorithm == Algorithm.SOUND_VALUE_ITERATION.value:
+            from sound_value_iteration import sound_value_iteration
+            results = sound_value_iteration(mmodelN, args.precision)
+        elif args.algorithm == Algorithm.INTERVAL_ITERATION.value:
+            from interval_iteration import Interval_Iteration
+            results = Interval_Iteration(mmodel, args.precision).compute()
+            #print(f"results: {results}")
+        elif args.algorithm == Algorithm.OPTIMISTIC_VALUE_ITERATION.value:
+            from gs_value_iteration import GS_Value_Iteration
+            results = GS_Value_Iteration(mmodel, args.precision).compute()
+        elif args.algorithm == Algorithm.GAUSS_SEIDEL_VALUE_ITERATION.value:
+            from gsvi import gsvi
+            results = gsvi(mmodelN, args.max_iterations, args.precision)
         else:
             raise ExploreModeError(f"Algorithm {args.algorithm} not supported")
 

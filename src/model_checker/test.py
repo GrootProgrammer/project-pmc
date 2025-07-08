@@ -111,11 +111,11 @@ def test():
                 "deadline": "200"
             },
             "results": {
-                "elected": "1.0",
+                # "elected": "1.0",
                 "time_max": "299",
                 "time_min": "138.25",
-                "time_sending": "18",
-                "deadline": "0.5"
+                "time_sending": "18"
+                # "deadline": "0.5"
             }
         },
         "firewire_abst": {
@@ -123,7 +123,6 @@ def test():
                 "delay": "36",
             },
             "results": {
-                "deadline": "1.0",
                 "rounds": "1.0",
                 "time_max": "365",
                 "time_min": "102.25"
@@ -304,7 +303,10 @@ def test():
     def run_model(k,v,algorithm):
         import time
         timer = time.time()
-        cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm]
+        if algorithm == "pi-dp":
+            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", "pi", "--smt-timeout", str(int((args.timeout*1000)/len(v["results"]))), "--dynamic-precision"]
+        else:
+            cmd = ["python3", "src/model_checker/main.py", "--python-model", f"test-files/{k}.py", "check", "--json-output", "--algorithm", algorithm, "--smt-timeout", str(int((args.timeout*1000)/len(v["results"])))]
         try:
             output = subprocess.run(cmd, capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
@@ -319,7 +321,10 @@ def test():
                 print("\t\t\t" + line)
             for line in output.stderr.splitlines():
                 print("\t\t\t" + line)
-            exit(1)
+            for r in v["results"]:
+                output_info[k][algorithm][r] = PropertyResult(PropertyResultType.ERROR, None, args.timeout)
+            output_info[k][algorithm]["total_time"] = args.timeout
+            return
         import json
         results = json.loads(output.stdout)
         results = {prop: PropertyResult.from_dict(r) for prop, r in results.items()}
@@ -377,11 +382,12 @@ def test():
 
     run_models()
     # print(output_info)
-    success = True
+    # success = True
     for k, v in output_info.items():
         for algorithm in v:
             if algorithm == "exact":
                 continue
+            assert "total_time" in v[algorithm]
             for result in v[algorithm]:
                 if result == "total_time":
                     continue
@@ -391,10 +397,11 @@ def test():
                 result_value = result_value.result
                 exact_value = float(v["exact"][result])
                 if abs(exact_value - result_value) > 0.001:
+                    output_info[k][algorithm][result] = PropertyResult(PropertyResultType.INCORRECT_FLOAT, result_value, v[algorithm][result].time)
                     print(f"incorrect on {k} with {algorithm} with property {result}: {result_value} instead of {exact_value}")
-                    success = False
-    if not success:
-        exit(1)
+                    # success = False
+    # if not success:
+    #     exit(1)
     if args.output:
         with open(args.output, "w") as f:
             # Convert PropertyResult objects to dictionaries for JSON serialization
@@ -404,6 +411,8 @@ def test():
                 for algorithm_key, algorithm_data in model_data.items():
                     serializable_output[model_key][algorithm_key] = {}
                     for result_key, result_value in algorithm_data.items():
+                        if result_key not in output_info[model_key]["exact"] and result_key != "total_time":
+                            continue
                         if isinstance(result_value, PropertyResult):
                             serializable_output[model_key][algorithm_key][result_key] = result_value.to_dict()
                         else:

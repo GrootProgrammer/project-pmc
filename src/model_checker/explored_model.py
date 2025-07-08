@@ -88,12 +88,16 @@ class Model:
         return self.opt['transitions'][s].keys()
 
     def get_transition_prob(self, s, a, s_prime):
+        if s not in self.opt['transitions'] or a not in self.opt['transitions'][s] or s_prime not in self.opt['transitions'][s][a]:
+            return 0
         return self.opt['transitions'][s][a][s_prime]
 
     def get_next_states(self, s, a):
         return self.opt['transitions'][s][a].keys()
 
     def get_goal_value(self, s, g_exp):
+        if g_exp is None:
+            return 0
         return self.old.network.get_expression_value(self.rev[s], g_exp)
 
     def is_safe(self, s, safe_exp):
